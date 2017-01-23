@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Module file.
+ */
+use Drupal\preview_link\Form\PreviewLinkForm;
+use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function preview_link_entity_type_alter(array &$entity_types) {
+
+  // @TODO, support all entity types.
+  $type = $entity_types['node'];
+
+//  if (!$type->getFormClass('preview_link')) {
+//    $type->setFormClass('preview_link', PreviewLinkForm::class);
+//  }
+
+  $providers = $type->getRouteProviderClasses() ?: [];
+  if (empty($providers['preview_link'])) {
+    $providers['preview_link'] = PreviewLinkRouteProvider::class;
+    $type->setHandlerClass('route_provider', $providers);
+  }
+}
