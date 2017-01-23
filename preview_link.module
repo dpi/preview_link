@@ -4,7 +4,7 @@
  * @file
  * Module file.
  */
-use Drupal\Core\Config\Entity\ConfigEntityTypeInterface;
+
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
 
