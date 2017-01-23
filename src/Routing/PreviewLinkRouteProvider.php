@@ -72,7 +72,6 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
       return;
     }
 
-    $entity_type_id = $entity_type->id();
     $route = new Route('/preview-link/{entity_type_id}/{entity_id}/{preview_token}');
 
     $route
