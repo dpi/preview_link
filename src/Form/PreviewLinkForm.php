@@ -39,15 +39,12 @@ class PreviewLinkForm extends ContentEntityForm {
     $form = parent::buildForm($form, $form_state);
 
     $form['preview_link'] = [
-      '#type' => 'inline_template',
-      '#template' => '<h2>{{ title }}</h2>{{ link }}',
-      '#context' => [
-        'title' => $this->t('Preview link'),
-        'link' => $this->entity
-          ->getUrl()
-          ->setAbsolute()
-          ->toString()
-      ],
+      '#theme' => 'preview_link',
+      '#title' => $this->t('Preview link'),
+      '#link' => $this->entity
+        ->getUrl()
+        ->setAbsolute()
+        ->toString(),
     ];
 
     $form['actions']['submit']['#value'] = $this->t('Re-generate preview link');

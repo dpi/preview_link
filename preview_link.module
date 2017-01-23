@@ -12,7 +12,6 @@ use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
  * Implements hook_entity_type_alter().
  */
 function preview_link_entity_type_alter(array &$entity_types) {
-
   $supported_entity_types = array_filter($entity_types, function (EntityTypeInterface $type) use ($entity_types) {
     return $type->isRevisionable();
   });
@@ -25,7 +24,6 @@ function preview_link_entity_type_alter(array &$entity_types) {
       $type->setHandlerClass('route_provider', $providers);
     }
   }
-
 }
 
 /**
@@ -48,4 +46,20 @@ function preview_link_cron() {
   // Simply delete the preview link. A new one will be regenerated at a later
   // date as required.
   $storage->delete($expired_preview_links);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function preview_link_theme($existing, $type, $theme, $path) {
+  return [
+    'preview_link' => [
+      'path' => $path . '/templates',
+      'template' => 'preview-link',
+      'variables' => [
+        'title' => NULL,
+        'link' => NULL,
+      ],
+    ],
+  ];
 }
