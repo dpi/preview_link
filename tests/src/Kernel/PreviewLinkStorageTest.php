@@ -2,28 +2,15 @@
 
 namespace Drupal\Tests\preview_link\Kernel;
 
-use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
 use Drupal\preview_link\Entity\PreviewLink;
 use Drupal\preview_link\Entity\PreviewLinkInterface;
-use Drupal\simpletest\ContentTypeCreationTrait;
-use Drupal\simpletest\NodeCreationTrait;
 
 /**
  * Preview link form test.
  *
  * @group preview_link
  */
-class PreviewLinkStorageTest extends EntityKernelTestBase {
-
-  use ContentTypeCreationTrait;
-  use NodeCreationTrait;
-
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = ['node', 'filter', 'preview_link'];
+class PreviewLinkStorageTest extends PreviewLinkBase {
 
   /**
    * Testing node.
@@ -44,9 +31,6 @@ class PreviewLinkStorageTest extends EntityKernelTestBase {
    */
   public function setUp() {
     parent::setUp();
-    $this->installEntitySchema('preview_link');
-    $this->installConfig(['node', 'filter']);
-    $this->createContentType(['type' => 'page']);
     $this->node = $this->createNode();
     $this->storage = $this->container->get('entity_type.manager')->getStorage('preview_link');
   }
@@ -84,12 +68,14 @@ class PreviewLinkStorageTest extends EntityKernelTestBase {
   public function testRegenerateToken() {
     $preview_link = $this->storage->createPreviewLinkForEntity($this->node);
     $current_token = $preview_link->getToken();
+    $current_timestamp = $preview_link->getGeneratedTimestamp();
 
     // Regenerate and ensure it changed.
     $preview_link->regenerateToken(TRUE);
     $preview_link->save();
 
     $this->assertNotEquals($current_token, $preview_link->getToken());
+    $this->assertNotEquals($current_timestamp, $preview_link->getGeneratedTimestamp());
   }
 
   /**

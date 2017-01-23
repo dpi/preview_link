@@ -35,7 +35,7 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
    *
    * @var bool
    */
-  protected $needsNewToken;
+  protected $needsNewToken = FALSE;
 
   /**
    * {@inheritdoc}
@@ -61,6 +61,8 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
    */
   public function setToken($token) {
     $this->set('token', $token);
+    // Add a second so our testing always works.
+    $this->set('generated_timestamp', time() + 1);
     return $this;
   }
 
@@ -71,6 +73,13 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
     $current_value = $this->needsNewToken;
     $this->needsNewToken = $needs_new_token;
     return $current_value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getGeneratedTimestamp() {
+    return $this->get('generated_timestamp')->value;
   }
 
   /**
@@ -91,6 +100,11 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
     $fields['entity_type_id'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Entity Type Id'))
       ->setDescription(t('The entity type Id'))
+      ->setRequired(TRUE);
+
+    $fields['generated_timestamp'] = BaseFieldDefinition::create('timestamp')
+      ->setLabel(t('Generated Timestamp'))
+      ->setDescription(t('The time the link was generated'))
       ->setRequired(TRUE);
 
     return $fields;

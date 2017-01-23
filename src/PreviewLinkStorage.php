@@ -84,7 +84,6 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
    */
   public function createPreviewLink($entity_type_id, $entity_id) {
     $preview_link = $this->create([
-      'token' => $this->generateUniqueToken(),
       'entity_id' => $entity_id,
       'entity_type_id' => $entity_type_id,
     ]);
@@ -98,6 +97,7 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
   public function create(array $values = array()) {
     return parent::create($values + [
       'token' => $this->generateUniqueToken(),
+      'generated_timestamp' => time(),
     ]);
   }
 

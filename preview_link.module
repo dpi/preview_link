@@ -4,7 +4,8 @@
  * @file
  * Module file.
  */
-use Drupal\preview_link\Form\PreviewLinkForm;
+use Drupal\Core\Config\Entity\ConfigEntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
 
 /**
@@ -12,16 +13,39 @@ use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
  */
 function preview_link_entity_type_alter(array &$entity_types) {
 
-  // @TODO, support all entity types.
-  $type = $entity_types['node'];
+  $supported_entity_types = array_filter($entity_types, function (EntityTypeInterface $type) use ($entity_types) {
+    return $type->isRevisionable();
+  });
 
-//  if (!$type->getFormClass('preview_link')) {
-//    $type->setFormClass('preview_link', PreviewLinkForm::class);
-//  }
-
-  $providers = $type->getRouteProviderClasses() ?: [];
-  if (empty($providers['preview_link'])) {
-    $providers['preview_link'] = PreviewLinkRouteProvider::class;
-    $type->setHandlerClass('route_provider', $providers);
+  /** @var \Drupal\Core\Entity\ContentEntityType $type */
+  foreach ($supported_entity_types as $type) {
+    $providers = $type->getRouteProviderClasses() ?: [];
+    if (empty($providers['preview_link'])) {
+      $providers['preview_link'] = PreviewLinkRouteProvider::class;
+      $type->setHandlerClass('route_provider', $providers);
+    }
   }
+
+}
+
+/**
+ * Implements hook_cron().
+ */
+function preview_link_cron() {
+  $days = \Drupal::state()->get('preview_link_expiry_days', 7);
+  $days_in_seconds = $days * 86400;
+  $results = \Drupal::entityQuery('preview_link')
+    ->condition('generated_timestamp', time() + $days_in_seconds, '<')
+    ->execute();
+
+  // If there are no expired links then nothing to do.
+  if (!$results) {
+    return;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage('preview_link');
+  $expired_preview_links = $storage->loadMultiple($results);
+  // Simply delete the preview link. A new one will be regenerated at a later
+  // date as required.
+  $storage->delete($expired_preview_links);
 }

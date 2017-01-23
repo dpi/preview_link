@@ -2,27 +2,14 @@
 
 namespace Drupal\Tests\preview_link\Kernel;
 
-use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
 use Drupal\preview_link\Entity\PreviewLink;
-use Drupal\simpletest\ContentTypeCreationTrait;
-use Drupal\simpletest\NodeCreationTrait;
 
 /**
  * Test preview link access.
  *
  * @group preview_link
  */
-class PreviewLinkAccessTest extends EntityKernelTestBase {
-
-  use ContentTypeCreationTrait;
-  use NodeCreationTrait;
-
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = ['node', 'filter', 'preview_link'];
+class PreviewLinkAccessTest extends PreviewLinkBase {
 
   /**
    * Node for testing.
@@ -43,9 +30,6 @@ class PreviewLinkAccessTest extends EntityKernelTestBase {
    */
   public function setUp() {
     parent::setUp();
-    $this->installEntitySchema('preview_link');
-    $this->installConfig(['node', 'filter']);
-    $this->createContentType(['type' => 'page']);
     $this->node = $this->createNode();
     $this->previewLink = PreviewLink::create([
       'entity_type_id' => 'node',

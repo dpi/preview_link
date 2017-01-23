@@ -1,8 +1,0 @@
-preview_link.node_view:
-  path: '/node/{node}/view-preview'
-  defaults:
-    _controller: '\Drupal\node\Controller\NodeViewController::view'
-    _title: 'Preview'
-  requirements:
-    # TODO, tagged access service for checking the token.
-    _access: 'TRUE'
