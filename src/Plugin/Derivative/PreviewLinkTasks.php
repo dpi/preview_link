@@ -10,6 +10,9 @@ use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Preview link task generation.
+ */
 class PreviewLinkTasks extends DeriverBase implements ContainerDeriverInterface {
 
   use StringTranslationTrait;
@@ -76,9 +79,17 @@ class PreviewLinkTasks extends DeriverBase implements ContainerDeriverInterface 
     return $this->derivatives;
   }
 
+  /**
+   * Check if the entity type is supported.
+   *
+   * @param \Drupal\Core\Entity\EntityTypeInterface $entityType
+   *   The entity type we're checking.
+   *
+   * @return bool
+   *   TRUE if it supports previews otherwise FALSE.
+   */
   protected function supportsPreviewLink(EntityTypeInterface $entityType) {
     return $entityType->isRevisionable();
-    return TRUE;
-    //return !$this->isRevisionable() && !$this->isPublishable();
   }
+
 }
