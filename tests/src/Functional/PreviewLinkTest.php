@@ -18,7 +18,7 @@ class PreviewLinkTest extends BrowserTestBase {
   public static $modules = ['preview_link', 'node', 'filter'];
 
   /**
-   * Test usre.
+   * Test user.
    *
    * @var \Drupal\user\Entity\User
    */

@@ -44,7 +44,8 @@ class PreviewLinkAccessTest extends PreviewLinkBase {
    * @dataProvider previewAccessDeniedDataProvider
    */
   public function testPreviewAccessDenied($entity_type_id, $entity_id, $token, $expected_result) {
-    $access = $this->container->get('access_check.preview_link')->access($entity_type_id, $entity_id, $token);
+    $entity = $this->container->get('entity_type.manager')->getStorage($entity_type_id)->load($entity_id);
+    $access = $this->container->get('access_check.preview_link')->access($entity, $token);
     $this->assertEquals($expected_result, $access->isAllowed());
   }
 
@@ -56,7 +57,6 @@ class PreviewLinkAccessTest extends PreviewLinkBase {
       'empty token' => ['node', 1, '', FALSE],
       'invalid token' => ['node', 1, 'invalid 123', FALSE],
       'invalid entity id' => ['node', 99, 'correct-token', FALSE],
-      'invalid entity type id' => ['blah', 1, 'correct-token', FALSE],
     ];
   }
 
@@ -64,7 +64,7 @@ class PreviewLinkAccessTest extends PreviewLinkBase {
    * Ensure access is allowed with a valid token.
    */
   public function testPreviewAccessAllowed() {
-    $access = $this->container->get('access_check.preview_link')->access('node', $this->node->id(), $this->previewLink->getToken());
+    $access = $this->container->get('access_check.preview_link')->access($this->node, $this->previewLink->getToken());
     $this->assertEquals(TRUE, $access->isAllowed());
   }
 

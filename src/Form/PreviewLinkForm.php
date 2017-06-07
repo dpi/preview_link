@@ -26,7 +26,7 @@ class PreviewLinkForm extends ContentEntityForm {
     /** @var \Drupal\preview_link\PreviewLinkStorageInterface $storage */
     $storage = $this->entityTypeManager->getStorage('preview_link');
     $related_entity = $this->getRelatedEntity();
-    if (!$preview_link = $storage->getPreviewLinkForEntity($related_entity)) {
+    if (!$preview_link = $storage->getPreviewLink($related_entity)) {
       $preview_link = $storage->createPreviewLinkForEntity($related_entity);
     }
     return $preview_link;

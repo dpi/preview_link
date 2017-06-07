@@ -72,7 +72,7 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
       return;
     }
 
-    $route = new Route('/preview-link/{entity_type_id}/{entity_id}/{preview_token}');
+    $route = new Route('/preview-link/' . $entity_type->id() . '/{entity}/{preview_token}');
 
     $route
       ->setDefaults([
@@ -81,8 +81,7 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
       ])
       ->setRequirement('_access_preview_link', '{preview_token}')
       ->setOption('parameters', [
-        'entity_type_id' => ['type' => 'string'],
-        'entity_id' => ['type' => 'string'],
+        'entity' => ['type' => 'entity:' . $entity_type->id(), 'load_forward_revision' => 1],
         'preview_token' => ['type' => 'string'],
       ]);
 

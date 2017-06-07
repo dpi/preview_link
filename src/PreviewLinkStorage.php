@@ -54,20 +54,16 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
    * {@inheritdoc}
    */
   public function getPreviewLinkForEntity(ContentEntityInterface $entity) {
-    return $this->getPreviewLink($entity->getEntityTypeId(), $entity->id());
+    return $this->getPreviewLink($entity);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getPreviewLink($entity_type_id, $entity_id) {
-    if (!$entity_id || !$entity_type_id) {
-      return FALSE;
-    }
-
+  public function getPreviewLink(ContentEntityInterface $entity) {
     $result = $this->loadByProperties([
-      'entity_type_id' => $entity_type_id,
-      'entity_id' => $entity_id,
+      'entity_type_id' => $entity->getEntityTypeId(),
+      'entity_id' => $entity->id(),
     ]);
     return $result ? array_pop($result) : FALSE;
   }

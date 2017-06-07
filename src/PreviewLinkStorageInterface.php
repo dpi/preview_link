@@ -21,15 +21,13 @@ interface PreviewLinkStorageInterface extends SqlEntityStorageInterface {
   /**
    * Gets the preview link given entity type Id and entity Id.
    *
-   * @param string $entity_type_id
-   *   The entity type Id.
-   * @param string $entity_id
-   *   The entity id.
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The entity.
    *
    * @return \Drupal\preview_link\Entity\PreviewLinkInterface|FALSE
    *   The preview link entity if it exists otherwise FALSE.
    */
-  public function getPreviewLink($entity_type_id, $entity_id);
+  public function getPreviewLink(ContentEntityInterface $entity);
 
   /**
    * Creates a new preview link from a content entity.

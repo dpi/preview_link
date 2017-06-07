@@ -3,6 +3,7 @@
 namespace Drupal\preview_link\Access;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
 
@@ -31,23 +32,21 @@ class PreviewLinkAccessCheck implements AccessInterface {
   /**
    * Checks access to the node add page for the node type.
    *
-   * @param string $entity_type_id
-   *   The entity type Id.
-   * @param string $entity_id
-   *   The entity Id.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity.
    * @param string $preview_token
    *   The preview token.
    *
    * @return string
    *   A \Drupal\Core\Access\AccessInterface constant value.
    */
-  public function access($entity_type_id = NULL, $entity_id = NULL, $preview_token = NULL) {
-    if (!$preview_token) {
+  public function access(EntityInterface $entity = NULL, $preview_token = NULL) {
+    if (!$preview_token || !$entity) {
       return AccessResult::forbidden();
     }
 
     /** @var \Drupal\preview_link\Entity\PreviewLinkInterface $preview_link */
-    $preview_link = $this->entityTypeManager->getStorage('preview_link')->getPreviewLink($entity_type_id, $entity_id);
+    $preview_link = $this->entityTypeManager->getStorage('preview_link')->getPreviewLink($entity);
 
     // If we can't find a valid preview link then don't allow.
     if (!$preview_link) {

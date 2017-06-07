@@ -41,10 +41,9 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
    * {@inheritdoc}
    */
   public function getUrl() {
-    $entity_type_id = $this->get('entity_type_id')->value;
+    $entity_type_id = $this->entity_type_id->value;
     return Url::fromRoute("entity.$entity_type_id.preview_link", [
-      'entity_type_id' => $entity_type_id,
-      'entity_id' => $this->get('entity_id')->value,
+      'entity' => $this->entity_id->value,
       'preview_token' => $this->getToken(),
     ]);
   }
