@@ -81,7 +81,7 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
       ])
       ->setRequirement('_access_preview_link', '{preview_token}')
       ->setOption('parameters', [
-        'entity' => ['type' => 'entity:' . $entity_type->id(), 'load_forward_revision' => 1],
+        'entity' => ['type' => 'entity:' . $entity_type->id(), 'load_latest_revision' => TRUE],
         'preview_token' => ['type' => 'string'],
       ]);
 
