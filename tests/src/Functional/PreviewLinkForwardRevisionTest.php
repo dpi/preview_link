@@ -4,6 +4,7 @@ namespace Drupal\Tests\preview_link\Functional;
 
 use Drupal\preview_link\Entity\PreviewLink;
 use Drupal\Tests\BrowserTestBase;
+use Drupal\Tests\content_moderation\Traits\ContentModerationTestTrait;
 use Drupal\workflows\Entity\Workflow;
 
 /**
@@ -12,6 +13,7 @@ use Drupal\workflows\Entity\Workflow;
  * @group preview_link
  */
 class PreviewLinkForwardRevisionTest extends BrowserTestBase {
+  use ContentModerationTestTrait;
 
   /**
    * {@inheritdoc}
@@ -28,6 +30,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
    */
   public function setUp() {
     parent::setUp();
+    $this->createEditorialWorkflow();
     $this->createContentType(['type' => 'page']);
 
     $workflow = Workflow::load('editorial');

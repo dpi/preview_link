@@ -23,4 +23,17 @@ class PreviewLinkController extends ControllerBase {
     return $this->entityTypeManager()->getViewBuilder($entity->getEntityTypeId())->view($entity);
   }
 
+  /**
+   * Preview page title.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity.
+   *
+   * @return string
+   *   The title of the entity.
+   */
+  public function title(EntityInterface $entity) {
+    return $entity->label();
+  }
+
 }
