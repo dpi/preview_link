@@ -33,7 +33,7 @@ function preview_link_cron() {
   $days = \Drupal::state()->get('preview_link_expiry_days', 7);
   $days_in_seconds = $days * 86400;
   $results = \Drupal::entityQuery('preview_link')
-    ->condition('generated_timestamp', time() + $days_in_seconds, '<')
+    ->condition('generated_timestamp', time() - $days_in_seconds, '<')
     ->execute();
 
   // If there are no expired links then nothing to do.
