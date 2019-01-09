@@ -37,12 +37,15 @@ class PreviewLinkAccessCheck implements AccessInterface {
    * @param string $preview_token
    *   The preview token.
    *
-   * @return string
-   *   A \Drupal\Core\Access\AccessInterface constant value.
+   * @return \Drupal\Core\Access\AccessResult
+   *   A \Drupal\Core\Access\AccessInterface value.
    */
   public function access(EntityInterface $entity = NULL, $preview_token = NULL) {
+    $neutral = AccessResult::neutral()
+      ->addCacheableDependency($entity)
+      ->addCacheContexts(['url']);
     if (!$preview_token || !$entity) {
-      return AccessResult::forbidden();
+      return $neutral;
     }
 
     /** @var \Drupal\preview_link\Entity\PreviewLinkInterface $preview_link */
@@ -50,14 +53,17 @@ class PreviewLinkAccessCheck implements AccessInterface {
 
     // If we can't find a valid preview link then don't allow.
     if (!$preview_link) {
-      return AccessResult::forbidden();
+      return $neutral;
     }
 
     if ($preview_token !== $preview_link->getToken()) {
-      return AccessResult::forbidden();
+      return $neutral;
     }
 
-    return AccessResult::allowed();
+    return AccessResult::allowed()
+      ->addCacheableDependency($entity)
+      ->addCacheableDependency($preview_link)
+      ->addCacheContexts(['url']);
   }
 
 }
