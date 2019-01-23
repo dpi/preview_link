@@ -51,13 +51,17 @@ class PreviewLinkAccessCheck implements AccessInterface {
     /** @var \Drupal\preview_link\Entity\PreviewLinkInterface $preview_link */
     $preview_link = $this->entityTypeManager->getStorage('preview_link')->getPreviewLink($entity);
 
-    // If we can't find a valid preview link then don't allow.
+    // If we can't find a valid preview link then ignore this.
     if (!$preview_link) {
-      return $neutral;
+      return $neutral->setReason('This entity does not have a preview link.');
     }
 
+    // If an entity has a preview link and it doesnt match up, then explicitly
+    // deny access.
     if ($preview_token !== $preview_link->getToken()) {
-      return $neutral;
+      return AccessResult::forbidden('Preview token is invalid.')
+        ->addCacheableDependency($entity)
+        ->addCacheContexts(['url']);
     }
 
     return AccessResult::allowed()
