@@ -85,6 +85,70 @@ class PreviewLinkAccessTest extends BrowserTestBase {
   }
 
   /**
+   * Test the preview link routes based on the settings.
+   */
+  public function testPreviewLinkEnabledEntityTypesConfiguration() {
+    $config = $this->config('preview_link.settings');
+
+    $account = $this->createUser([
+      'view test entity',
+    ]);
+    $this->drupalLogin($account);
+
+    $entity = EntityTestRev::create();
+    $entity->save();
+
+    $preview = $this->getNewPreviewLinkForEntity($entity);
+    $token = $preview->getToken();
+
+    $url = Url::fromRoute('entity.entity_test_rev.preview_link', [
+      'entity' => $entity->id(),
+      'preview_token' => $token,
+    ]);
+
+    // Allowed when entity types are empty.
+    $config->set('enabled_entity_types', [])->save();
+    $this->drupalGet($url);
+    $this->assertSession()->statusCodeEquals(200);
+
+    // Forbidden if restricted by entity type.
+    $config->set('enabled_entity_types', [
+      'foo' => [],
+    ])->save();
+    $this->drupalGet($url);
+    $this->assertSession()->statusCodeEquals(403);
+
+    // Allowed if entity type is in restricted list.
+    $config->set('enabled_entity_types', [
+      'foo' => [],
+      'entity_test_rev' => [],
+    ])->save();
+    $this->drupalGet($url);
+    $this->assertSession()->statusCodeEquals(200);
+
+    // Forbidden if bundle is specific and isn't present.
+    $config->set('enabled_entity_types', [
+      'foo' => [],
+      'entity_test_rev' => [
+        'foo',
+      ],
+    ])->save();
+    $this->drupalGet($url);
+    $this->assertSession()->statusCodeEquals(403);
+
+    // Allowed if bundle is specified and present.
+    $config->set('enabled_entity_types', [
+      'foo' => [],
+      'entity_test_rev' => [
+        'foo',
+        'entity_test_rev',
+      ],
+    ])->save();
+    $this->drupalGet($url);
+    $this->assertSession()->statusCodeEquals(200);
+  }
+
+  /**
    * Get a saved preview link for an entity.
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
