@@ -83,7 +83,7 @@ class PreviewLinkForm extends ContentEntityForm {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->entity->regenerateToken(TRUE);
-    drupal_set_message($this->t('The token has been re-generated.'));
+    $this->messenger()->addMessage($this->t('The token has been re-generated.'));
 
   }
 }
