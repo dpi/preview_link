@@ -43,7 +43,7 @@ class PreviewLinkAccessCheck implements AccessInterface {
   public function access(EntityInterface $entity = NULL, $preview_token = NULL) {
     $neutral = AccessResult::neutral()
       ->addCacheableDependency($entity)
-      ->addCacheContexts(['url']);
+      ->addCacheContexts(['preview_link_route']);
     if (!$preview_token || !$entity) {
       return $neutral;
     }
@@ -61,13 +61,13 @@ class PreviewLinkAccessCheck implements AccessInterface {
     if ($preview_token !== $preview_link->getToken()) {
       return AccessResult::forbidden('Preview token is invalid.')
         ->addCacheableDependency($entity)
-        ->addCacheContexts(['url']);
+        ->addCacheContexts(['preview_link_route']);
     }
 
     return AccessResult::allowed()
       ->addCacheableDependency($entity)
       ->addCacheableDependency($preview_link)
-      ->addCacheContexts(['url']);
+      ->addCacheContexts(['preview_link_route']);
   }
 
 }

@@ -74,7 +74,7 @@ function preview_link_theme($existing, $type, $theme, $path) {
 function preview_link_entity_access(EntityInterface $entity, $operation, AccountInterface $account) {
   $neutral = AccessResult::neutral()
     ->addCacheableDependency($entity)
-    ->addCacheContexts(['url']);
+    ->addCacheContexts(['preview_link_route']);
   if ($operation !== 'view' || !($entity instanceof ContentEntityInterface)) {
     return $neutral;
   }

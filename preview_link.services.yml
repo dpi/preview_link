@@ -9,3 +9,8 @@ services:
     arguments: ['@config.factory']
     tags:
       - { name: access_check, applies_to: _access_preview_enabled }
+  cache_context.preview_link_route:
+    class: Drupal\preview_link\PreviewLinkCacheContext
+    arguments: ['@current_route_match']
+    tags:
+      - { name: cache.context }
