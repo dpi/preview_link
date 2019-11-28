@@ -49,7 +49,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
     $this->assertTrue(strlen($token) > 0);
 
     $url = Url::fromRoute('entity.entity_test_rev.preview_link', [
-      'entity' => $entity->id(),
+      'entity_test_rev' => $entity->id(),
       'preview_token' => $token,
     ]);
     $this->drupalGet($url);
@@ -77,7 +77,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
     $token = $preview->getToken();
 
     $url = Url::fromRoute('entity.entity_test_rev.preview_link', [
-      'entity' => $entity->id(),
+      'entity_test_rev' => $entity->id(),
       'preview_token' => $token,
     ]);
     $this->drupalGet($url);
@@ -102,7 +102,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
     $token = $preview->getToken();
 
     $url = Url::fromRoute('entity.entity_test_rev.preview_link', [
-      'entity' => $entity->id(),
+      'entity_test_rev' => $entity->id(),
       'preview_token' => $token,
     ]);
 

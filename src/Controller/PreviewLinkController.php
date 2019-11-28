@@ -13,27 +13,34 @@ class PreviewLinkController extends ControllerBase {
   /**
    * Preview any entity with the default view mode.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity.
-   *
    * @return array
    *   A render array for previewing the entity.
    */
-  public function preview(EntityInterface $entity) {
+  public function preview() {
+    $entity = $this->resolveEntity();
     return $this->entityTypeManager()->getViewBuilder($entity->getEntityTypeId())->view($entity);
   }
 
   /**
    * Preview page title.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity.
-   *
    * @return string
    *   The title of the entity.
    */
-  public function title(EntityInterface $entity) {
-    return $entity->label();
+  public function title() {
+    return $this->resolveEntity()->label();
+  }
+
+  /**
+   * Resolve the entity being previewed.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   The entity.
+   */
+  protected function resolveEntity() {
+    $route_match = \Drupal::routeMatch();
+    $preview_link_paramater = $route_match->getRouteObject()->getOption('preview_link.entity_type_id');
+    return $route_match->getParameter($preview_link_paramater);
   }
 
 }
