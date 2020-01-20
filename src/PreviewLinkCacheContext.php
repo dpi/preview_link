@@ -39,7 +39,7 @@ class PreviewLinkCacheContext implements CacheContextInterface {
    * {@inheritdoc}
    */
   public function getContext() {
-    return $this->routeMatch->getRouteObject()->getOption('_preview_link_route') ?: FALSE;
+    return ($route = $this->routeMatch->getRouteObject()) && $route->getOption('_preview_link_route') ?: FALSE;
   }
 
   /**
