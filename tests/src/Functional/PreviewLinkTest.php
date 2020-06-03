@@ -3,6 +3,7 @@
 namespace Drupal\Tests\preview_link\Functional;
 
 use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
 use Drupal\Tests\BrowserTestBase;
 
 /**
@@ -11,6 +12,11 @@ use Drupal\Tests\BrowserTestBase;
  * @group preview_link
  */
 class PreviewLinkTest extends BrowserTestBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'classy';
 
   /**
    * {@inheritdoc}
@@ -38,7 +44,7 @@ class PreviewLinkTest extends BrowserTestBase {
     parent::setUp();
     $this->admin = $this->createUser(['generate preview links']);
     $this->createContentType(['type' => 'page']);
-    $this->node = $this->createNode(['status' => NODE_NOT_PUBLISHED]);
+    $this->node = $this->createNode(['status' => NodeInterface::NOT_PUBLISHED]);
   }
 
   /**
