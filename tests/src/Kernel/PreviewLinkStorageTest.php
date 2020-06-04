@@ -43,13 +43,13 @@ class PreviewLinkStorageTest extends PreviewLinkBase {
       'entity_type_id' => 'node',
       'entity_id' => $this->node->id(),
     ]);
-    $this->assertTrue($preview_link->getToken());
+    $this->assertIsString($preview_link->getToken());
 
     $preview_link = $this->storage->createPreviewLinkForEntity($this->node);
-    $this->assertTrue($preview_link->getToken());
+    $this->assertIsString($preview_link->getToken());
 
     $preview_link = $this->storage->createPreviewLink('node', $this->node->id());
-    $this->assertTrue($preview_link->getToken());
+    $this->assertIsString($preview_link->getToken());
   }
 
   /**
