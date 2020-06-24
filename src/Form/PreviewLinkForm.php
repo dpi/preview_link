@@ -14,6 +14,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Preview link form.
+ *
+ * @internal
  */
 class PreviewLinkForm extends ContentEntityForm {
 
@@ -40,17 +42,15 @@ class PreviewLinkForm extends ContentEntityForm {
    *   The entity type bundle service.
    * @param \Drupal\Component\Datetime\TimeInterface $time
    *   The time service.
-   * @param \Drupal\Core\Datetime\DateFormatterInterface|null $date_formatter
-   *   The date formatter service. Will be pulled from global container if not
-   *   set.
-   * @param \Drupal\preview_link\LinkExpiry|null $link_expiry
-   *   Calculates link expiry time. Will be pulled from global container if not
-   *   set.
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
+   *   The date formatter service.
+   * @param \Drupal\preview_link\LinkExpiry $link_expiry
+   *   Calculates link expiry time.
    */
-  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, TimeInterface $time = NULL, DateFormatterInterface $date_formatter = NULL, LinkExpiry $link_expiry = NULL) {
+  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info, TimeInterface $time, DateFormatterInterface $date_formatter, LinkExpiry $link_expiry) {
     parent::__construct($entity_repository, $entity_type_bundle_info, $time);
-    $this->dateFormatter = $date_formatter ?: \Drupal::service('datetime.formatter');
-    $this->linkExpiry = $link_expiry ?: \Drupal::service('preview_link.link_expiry');
+    $this->dateFormatter = $date_formatter;
+    $this->linkExpiry = $link_expiry;
   }
 
   /**
