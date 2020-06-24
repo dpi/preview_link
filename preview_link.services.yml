@@ -14,3 +14,6 @@ services:
     arguments: ['@current_route_match']
     tags:
       - { name: cache.context }
+  preview_link.link_expiry:
+    class: Drupal\preview_link\LinkExpiry
+    arguments: ['@state']
