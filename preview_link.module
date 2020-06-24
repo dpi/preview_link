@@ -8,6 +8,7 @@
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\preview_link\PreviewLinkHooks;
@@ -18,7 +19,7 @@ use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
  */
 function preview_link_entity_type_alter(array &$entity_types) {
   $supported_entity_types = array_filter($entity_types, function (EntityTypeInterface $type) use ($entity_types) {
-    return $type->isRevisionable();
+    return $type->entityClassImplements(EntityPublishedInterface::class);
   });
 
   /** @var \Drupal\Core\Entity\ContentEntityType $type */
