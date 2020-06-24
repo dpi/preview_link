@@ -1,4 +1,6 @@
 <div class="preview-link">
+  <p>Generate a preview link for the <em>{{ related_entity.label }}</em> entity. Preview links will expire {{ total_expiry_days }} days after they were created.</p>
   <h2 class="preview-link__title">{{ title }}</h2>
-  <span class="preview-link__link">{{ link }}</span>
+  <p><span class="label">Link: </span> <span class="preview-link__link"><a href="{{ link }}">{{ link }}</a></span></p>
+  <p><span class="label">Expiry: </span>{{ remaining_expiry }}</p>
 </div>

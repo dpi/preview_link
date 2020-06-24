@@ -65,12 +65,13 @@ class PreviewLinkTest extends BrowserTestBase {
 
     // Grab the link from the page and ensure it works.
     $link = $this->cssSelect('.preview-link__link')[0]->getText();
+    $this->assertSession()->pageTextContains('Expiry: 1 week');
     $this->drupalGet($link);
     $assert->statusCodeEquals(200);
     $assert->responseContains($this->node->getTitle());
 
     // Submitting form re-generates the link.
-    $this->drupalPostForm($url, [], 'Re-generate preview link');
+    $this->drupalPostForm($url, [], 'Regenerate preview link');
     $new_link = $this->cssSelect('.preview-link__link')[0]->getText();
     $this->assertNotEquals($link, $new_link);
 

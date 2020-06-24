@@ -34,10 +34,8 @@ function preview_link_entity_type_alter(array &$entity_types) {
  * Implements hook_cron().
  */
 function preview_link_cron() {
-  $days = \Drupal::state()->get('preview_link_expiry_days', 7);
-  $days_in_seconds = $days * 86400;
   $results = \Drupal::entityQuery('preview_link')
-    ->condition('generated_timestamp', time() - $days_in_seconds, '<')
+    ->condition('generated_timestamp', time() - \Drupal::service('preview_link.link_expiry')->getSeconds(), '<')
     ->execute();
 
   // If there are no expired links then nothing to do.
@@ -63,6 +61,9 @@ function preview_link_theme($existing, $type, $theme, $path) {
       'variables' => [
         'title' => NULL,
         'link' => NULL,
+        'related_entity' => NULL,
+        'total_expiry_days' => NULL,
+        'remaining_expiry' => NULL,
       ],
     ],
   ];
