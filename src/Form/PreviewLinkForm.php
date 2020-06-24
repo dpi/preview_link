@@ -2,10 +2,10 @@
 
 namespace Drupal\preview_link\Form;
 
-
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Preview link form.
@@ -13,7 +13,31 @@ use Drupal\Core\Routing\RouteMatchInterface;
 class PreviewLinkForm extends ContentEntityForm {
 
   /**
-   * @inheritDoc
+   * The date formatter service.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected $dateFormatter;
+
+  /**
+   * The state service.
+   *
+   * @var \Drupal\Core\State\StateInterface
+   */
+  protected $state;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    $instance = parent::create($container);
+    $instance->dateFormatter = $container->get('date.formatter');
+    $instance->state = $container->get('state');
+    return $instance;
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public function getFormId() {
     return 'preview_link_entity_form';
@@ -33,7 +57,7 @@ class PreviewLinkForm extends ContentEntityForm {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildForm($form, $form_state);
@@ -48,6 +72,13 @@ class PreviewLinkForm extends ContentEntityForm {
     ];
 
     $form['actions']['submit']['#value'] = $this->t('Re-generate preview link');
+
+    $form['actions']['reset'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Reset lifetime'),
+      '#submit' => ['::resetLifetime', '::save'],
+      '#weight' => 100,
+    ];
 
     return $form;
   }
@@ -79,11 +110,29 @@ class PreviewLinkForm extends ContentEntityForm {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->entity->regenerateToken(TRUE);
     $this->messenger()->addMessage($this->t('The token has been re-generated.'));
-
   }
+
+  /**
+   * Resets the lifetime of the current preview link.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public function resetLifetime(array &$form, FormStateInterface $form_state) {
+    $time = $this->time->getRequestTime();
+    $this->entity->set('generated_timestamp', $time);
+    $days = $this->state->get('preview_link_expiry_days', 7);
+    $days_in_seconds = $days * 86400;
+    $this->messenger()->addMessage($this->t('Preview link will now expire at %time.', [
+      '%time' => $this->dateFormatter->format($time + $days_in_seconds),
+    ]));
+  }
+
 }

@@ -78,6 +78,17 @@ class PreviewLinkTest extends BrowserTestBase {
     $assert->statusCodeEquals(200);
     $assert->responseContains($this->node->getTitle());
 
+    // Test the reset lifetime button.
+    $storage = \Drupal::entityTypeManager()->getStorage('preview_link');
+    $preview_link = $storage->getPreviewLinkForEntity($this->node);
+    $timestamp = $preview_link->getGeneratedTimestamp();
+    $token = $preview_link->getToken();
+    $this->drupalPostForm($url, [], 'Reset lifetime');
+    $this->assertSession()->pageTextContains('Preview link will now expire at');
+    $preview_link = $storage->loadUnchanged($preview_link->id());
+    $this->assertNotEquals($timestamp, $preview_link->getGeneratedTimestamp());
+    $this->assertEquals($token, $preview_link->getToken());
+
     // Logout, new link works for anonymous user.
     $this->drupalLogout();
     $this->drupalGet($new_link);
