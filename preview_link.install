@@ -5,6 +5,9 @@
  * Install file.
  */
 
+use Drupal\Core\Entity\EntityPublishedInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+
 /**
  * Install the settings object.
  */
@@ -12,4 +15,34 @@ function preview_link_update_8101() {
   $config = \Drupal::configFactory()->getEditable('preview_link.settings');
   $config->set('enabled_entity_types', []);
   $config->save(TRUE);
+}
+
+/**
+ * Disable non revisionable entity types for existing sites.
+ *
+ * We now allow non revisionable, implementing published interface. This
+ * protects against existing sites getting non revisionable enabled.
+ */
+function preview_link_update_8102() {
+  $enabledEntityTypes = \Drupal::configFactory()
+    ->get('preview_link.settings')
+    ->get('enabled_entity_types');
+
+  // If no entity types are specified, all were enabled.
+  if (!empty($enabledEntityTypes)) {
+    return;
+  }
+
+  $definitions = \Drupal::entityTypeManager()->getDefinitions();
+  $newTypes = array_filter($definitions, function (EntityTypeInterface $entityType) {
+    return $entityType->isRevisionable() && $entityType->entityClassImplements(EntityPublishedInterface::class) && !$entityType->isInternal() && $entityType->hasLinkTemplate('canonical');
+  });
+
+  // Enables all bundles for these entity types.
+  $enabledEntityTypes = array_fill_keys(array_keys($newTypes), []);
+
+  \Drupal::configFactory()
+    ->getEditable('preview_link.settings')
+    ->set('enabled_entity_types', $enabledEntityTypes)
+    ->save();
 }

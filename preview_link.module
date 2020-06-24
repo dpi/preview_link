@@ -19,7 +19,7 @@ use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
  */
 function preview_link_entity_type_alter(array &$entity_types) {
   $supported_entity_types = array_filter($entity_types, function (EntityTypeInterface $type) use ($entity_types) {
-    return $type->entityClassImplements(EntityPublishedInterface::class);
+    return $type->entityClassImplements(EntityPublishedInterface::class) && !$type->isInternal() && $type->hasLinkTemplate('canonical');
   });
 
   /** @var \Drupal\Core\Entity\ContentEntityType $type */
