@@ -34,24 +34,14 @@ class LinkExpiry {
   }
 
   /**
-   * Gets expiry time in seconds.
+   * Calculates default lifetime of a preview link.
    *
    * @return int
-   *   Link expiry time in seconds.
+   *   Preview link in seconds.
    */
-  public function getSeconds() {
+  public function getLifetime() {
     $days = $this->state->get('preview_link_expiry_days', static::DEFAULT_EXPIRY_DAYS);
     return $days * 86400;
-  }
-
-  /**
-   * Gets expiry time in days.
-   *
-   * @return int
-   *   Link expiry time in days.
-   */
-  public function getDays() {
-    return $this->state->get('preview_link_expiry_days', static::DEFAULT_EXPIRY_DAYS);
   }
 
 }
