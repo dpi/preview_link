@@ -45,7 +45,7 @@ class PreviewLinkExpiryTest extends PreviewLinkBase {
 
     // Run cron and then ensure the entity is gone.
     preview_link_cron();
-    $this->assertFalse($this->storage->load($id));
+    $this->assertNull($this->storage->load($id));
   }
 
 }

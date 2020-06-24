@@ -18,6 +18,11 @@ class PreviewLinkAccessTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
+  protected $defaultTheme = 'classy';
+
+  /**
+   * {@inheritdoc}
+   */
   public static $modules = [
     'entity_test',
     'preview_link',
@@ -45,7 +50,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
     // generation process is in use.
     $token = PreviewLink::create()->getToken();
     // Make sure the token is set.
-    $this->assertInternalType('string', $token);
+    $this->assertIsString($token);
     $this->assertTrue(strlen($token) > 0);
 
     $url = Url::fromRoute('entity.entity_test_rev.preview_link', [

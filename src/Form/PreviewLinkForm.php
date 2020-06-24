@@ -2,13 +2,21 @@
 
 namespace Drupal\preview_link\Form;
 
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\ContentEntityForm;
+use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\preview_link\LinkExpiry;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Preview link form.
+ *
+ * @internal
  */
 class PreviewLinkForm extends ContentEntityForm {
 
@@ -20,20 +28,47 @@ class PreviewLinkForm extends ContentEntityForm {
   protected $dateFormatter;
 
   /**
-   * The state service.
+   * Calculates link expiry time.
    *
-   * @var \Drupal\Core\State\StateInterface
+   * @var \Drupal\preview_link\LinkExpiry
    */
-  protected $state;
+  protected $linkExpiry;
+
+  /**
+   * PreviewLinkForm constructor.
+   *
+   * @param \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository
+   *   The entity repository service.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle service.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time service.
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
+   *   The date formatter service.
+   * @param \Drupal\preview_link\LinkExpiry $link_expiry
+   *   Calculates link expiry time.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
+   */
+  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info, TimeInterface $time, DateFormatterInterface $date_formatter, LinkExpiry $link_expiry, MessengerInterface $messenger) {
+    parent::__construct($entity_repository, $entity_type_bundle_info, $time);
+    $this->dateFormatter = $date_formatter;
+    $this->linkExpiry = $link_expiry;
+    $this->messenger = $messenger;
+  }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    $instance = parent::create($container);
-    $instance->dateFormatter = $container->get('date.formatter');
-    $instance->state = $container->get('state');
-    return $instance;
+    return new static(
+      $container->get('entity.repository'),
+      $container->get('entity_type.bundle.info'),
+      $container->get('datetime.time'),
+      $container->get('date.formatter'),
+      $container->get('preview_link.link_expiry'),
+      $container->get('messenger')
+    );
   }
 
   /**
@@ -62,16 +97,24 @@ class PreviewLinkForm extends ContentEntityForm {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildForm($form, $form_state);
 
+    $expiration = $this->entity->getGeneratedTimestamp() + $this->linkExpiry->getLifetime() - $this->time->getRequestTime();
+    $description = $this->t('Generate a preview link for the <em>@entity_label</em> entity. Preview links will expire @lifetime after they were created.', [
+      '@entity_label' => $this->getRelatedEntity()->label(),
+      '@lifetime' => $this->dateFormatter->formatInterval($this->linkExpiry->getLifetime(), 1),
+    ]);
+
     $form['preview_link'] = [
       '#theme' => 'preview_link',
       '#title' => $this->t('Preview link'),
+      '#description' => $description,
+      '#remaining_lifetime' => $this->dateFormatter->formatInterval($expiration),
       '#link' => $this->entity
         ->getUrl()
         ->setAbsolute()
         ->toString(),
     ];
 
-    $form['actions']['submit']['#value'] = $this->t('Re-generate preview link');
+    $form['actions']['submit']['#value'] = $this->t('Regenerate preview link');
 
     $form['actions']['reset'] = [
       '#type' => 'submit',
@@ -118,7 +161,7 @@ class PreviewLinkForm extends ContentEntityForm {
   }
 
   /**
-   * Resets the lifetime of the current preview link.
+   * Resets the lifetime of the preview link.
    *
    * @param array $form
    *   An associative array containing the structure of the form.
@@ -126,12 +169,11 @@ class PreviewLinkForm extends ContentEntityForm {
    *   The current state of the form.
    */
   public function resetLifetime(array &$form, FormStateInterface $form_state) {
-    $time = $this->time->getRequestTime();
-    $this->entity->set('generated_timestamp', $time);
-    $days = $this->state->get('preview_link_expiry_days', 7);
-    $days_in_seconds = $days * 86400;
+    $now = $this->time->getRequestTime();
+    $this->entity->generated_timestamp = $now;
+    $newExpiry = $now + $this->linkExpiry->getLifetime();
     $this->messenger()->addMessage($this->t('Preview link will now expire at %time.', [
-      '%time' => $this->dateFormatter->format($time + $days_in_seconds),
+      '%time' => $this->dateFormatter->format($newExpiry),
     ]));
   }
 

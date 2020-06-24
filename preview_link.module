@@ -10,6 +10,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\preview_link\PreviewLinkHooks;
 use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
 
 /**
@@ -34,22 +35,7 @@ function preview_link_entity_type_alter(array &$entity_types) {
  * Implements hook_cron().
  */
 function preview_link_cron() {
-  $days = \Drupal::state()->get('preview_link_expiry_days', 7);
-  $days_in_seconds = $days * 86400;
-  $results = \Drupal::entityQuery('preview_link')
-    ->condition('generated_timestamp', time() - $days_in_seconds, '<')
-    ->execute();
-
-  // If there are no expired links then nothing to do.
-  if (!$results) {
-    return;
-  }
-
-  $storage = \Drupal::entityTypeManager()->getStorage('preview_link');
-  $expired_preview_links = $storage->loadMultiple($results);
-  // Simply delete the preview link. A new one will be regenerated at a later
-  // date as required.
-  $storage->delete($expired_preview_links);
+  \Drupal::classResolver(PreviewLinkHooks::class)->cron();
 }
 
 /**
@@ -63,6 +49,8 @@ function preview_link_theme($existing, $type, $theme, $path) {
       'variables' => [
         'title' => NULL,
         'link' => NULL,
+        'description' => NULL,
+        'remaining_lifetime' => NULL,
       ],
     ],
   ];

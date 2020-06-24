@@ -23,6 +23,11 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
+  protected $defaultTheme = 'classy';
+
+  /**
+   * {@inheritdoc}
+   */
   public static $modules = [
     'preview_link',
     'node',
