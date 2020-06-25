@@ -3,7 +3,6 @@
 namespace Drupal\preview_link\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Entity\EntityInterface;
 
 /**
  * Preview link controller to view any entity.

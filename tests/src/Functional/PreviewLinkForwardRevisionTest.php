@@ -63,7 +63,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
     // Create a node with some random text.
     $node = $this->createNode([
       'title' => $original_random_text,
-      'moderation_state' => 'published'
+      'moderation_state' => 'published',
     ]);
 
     // Create a forward revision with new text.

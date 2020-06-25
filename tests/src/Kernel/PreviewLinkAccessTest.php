@@ -50,7 +50,7 @@ class PreviewLinkAccessTest extends PreviewLinkBase {
   }
 
   /**
-   * Data provider for testPreviewAccess();
+   * Data provider for testPreviewAccess().
    */
   public function previewAccessDeniedDataProvider() {
     return [

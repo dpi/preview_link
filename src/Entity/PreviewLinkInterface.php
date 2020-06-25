@@ -32,6 +32,7 @@ interface PreviewLinkInterface extends ContentEntityInterface {
    *   The new token.
    *
    * @return \Drupal\preview_link\Entity\PreviewLinkInterface
+   *   Returns the preview link for chaining.
    */
   public function setToken($token);
 

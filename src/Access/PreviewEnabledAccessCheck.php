@@ -53,7 +53,7 @@ class PreviewEnabledAccessCheck implements AccessInterface {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity.
    *
-   * @return boolean
+   * @return bool
    *   TRUE if enabled, FALSE otherwise.
    */
   protected function entityTypeAndBundleEnabled(EntityInterface $entity) {

@@ -7,6 +7,9 @@ use Drupal\Core\Entity\Routing\EntityRouteProviderInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
+/**
+ * Preview Link route provider.
+ */
 class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
 
   /**
@@ -34,12 +37,12 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
    * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
    *   The entity type.
    *
-   * @return \Symfony\Component\Routing\Route|NULL
+   * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
   protected function getGeneratePreviewLinkRoute(EntityTypeInterface $entity_type) {
     if (!$entity_type->hasLinkTemplate('canonical')) {
-      return;
+      return NULL;
     }
 
     $entity_type_id = $entity_type->id();
@@ -66,12 +69,12 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
    * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
    *   The entity type.
    *
-   * @return \Symfony\Component\Routing\Route|NULL
+   * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
   protected function getPreviewLinkRoute(EntityTypeInterface $entity_type) {
     if (!$entity_type->hasLinkTemplate('canonical')) {
-      return;
+      return NULL;
     }
 
     $entity_type_id = $entity_type->id();
@@ -90,7 +93,6 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
         'preview_token' => ['type' => 'string'],
       ])
       ->setOption('_preview_link_route', TRUE);
-
 
     return $route;
   }

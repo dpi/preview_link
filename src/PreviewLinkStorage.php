@@ -17,6 +17,9 @@ use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Preview Link entity storage.
+ */
 class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkStorageInterface {
 
   /**
@@ -114,13 +117,16 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
   /**
    * {@inheritdoc}
    */
-  public function create(array $values = array()) {
+  public function create(array $values = []) {
     return parent::create($values + [
       'token' => $this->generateUniqueToken(),
       'generated_timestamp' => $this->time->getRequestTime(),
     ]);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function save(EntityInterface $entity) {
     if ($entity->regenerateToken()) {
       $entity->setToken($this->generateUniqueToken());

@@ -7,7 +7,7 @@ use Drupal\Core\Cache\Context\CacheContextInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
- * Defines a class for a preview link cache context
+ * Defines a class for a preview link cache context.
  */
 class PreviewLinkCacheContext implements CacheContextInterface {
 
