@@ -2,6 +2,7 @@
 
 namespace Drupal\preview_link;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\MemoryCache\MemoryCacheInterface;
@@ -17,6 +18,13 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkStorageInterface {
+
+  /**
+   * Time service.
+   *
+   * @var \Drupal\Component\Datetime\TimeInterface
+   */
+  protected $time;
 
   /**
    * Constructs a new PreviewLinkStorage.
@@ -39,10 +47,13 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
    *   The entity type manager.
    * @param \Drupal\Component\Uuid\UuidInterface $uuid
    *   The UUID service.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   Time service.
    */
-  public function __construct(EntityTypeInterface $entity_type, Connection $database, EntityFieldManagerInterface $entity_field_manager, CacheBackendInterface $cache, LanguageManagerInterface $language_manager, MemoryCacheInterface $memory_cache, EntityTypeBundleInfoInterface $entity_type_bundle_info, EntityTypeManagerInterface $entity_type_manager, UuidInterface $uuid) {
+  public function __construct(EntityTypeInterface $entity_type, Connection $database, EntityFieldManagerInterface $entity_field_manager, CacheBackendInterface $cache, LanguageManagerInterface $language_manager, MemoryCacheInterface $memory_cache, EntityTypeBundleInfoInterface $entity_type_bundle_info, EntityTypeManagerInterface $entity_type_manager, UuidInterface $uuid, TimeInterface $time) {
     parent::__construct($entity_type, $database, $entity_field_manager, $cache, $language_manager, $memory_cache, $entity_type_bundle_info, $entity_type_manager);
     $this->uuidService = $uuid;
+    $this->time = $time;
   }
 
   /**
@@ -58,7 +69,8 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
       $container->get('entity.memory_cache'),
       $container->get('entity_type.bundle.info'),
       $container->get('entity_type.manager'),
-      $container->get('uuid')
+      $container->get('uuid'),
+      $container->get('datetime.time')
     );
   }
 
@@ -105,7 +117,7 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
   public function create(array $values = array()) {
     return parent::create($values + [
       'token' => $this->generateUniqueToken(),
-      'generated_timestamp' => time(),
+      'generated_timestamp' => $this->time->getRequestTime(),
     ]);
   }
 
