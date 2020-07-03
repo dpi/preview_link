@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\preview_link;
 
 use Drupal\Component\Datetime\TimeInterface;
@@ -7,7 +9,6 @@ use Drupal\Component\Uuid\UuidInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\MemoryCache\MemoryCacheInterface;
 use Drupal\Core\Database\Connection;
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
@@ -15,6 +16,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\preview_link\Entity\PreviewLinkInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -80,43 +82,6 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
   /**
    * {@inheritdoc}
    */
-  public function getPreviewLinkForEntity(ContentEntityInterface $entity) {
-    return $this->getPreviewLink($entity);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getPreviewLink(ContentEntityInterface $entity) {
-    $result = $this->loadByProperties([
-      'entity_type_id' => $entity->getEntityTypeId(),
-      'entity_id' => $entity->id(),
-    ]);
-    return $result ? array_pop($result) : FALSE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function createPreviewLinkForEntity(ContentEntityInterface $entity) {
-    return $this->createPreviewLink($entity->getEntityTypeId(), $entity->id());
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function createPreviewLink($entity_type_id, $entity_id) {
-    $preview_link = $this->create([
-      'entity_id' => $entity_id,
-      'entity_type_id' => $entity_type_id,
-    ]);
-    $preview_link->save();
-    return $preview_link;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function create(array $values = []) {
     return parent::create($values + [
       'token' => $this->generateUniqueToken(),
@@ -128,6 +93,7 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
    * {@inheritdoc}
    */
   public function save(EntityInterface $entity) {
+    assert($entity instanceof PreviewLinkInterface);
     if ($entity->regenerateToken()) {
       $entity->setToken($this->generateUniqueToken());
     }

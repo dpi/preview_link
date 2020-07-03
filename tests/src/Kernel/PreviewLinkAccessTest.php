@@ -3,6 +3,8 @@
 namespace Drupal\Tests\preview_link\Kernel;
 
 use Drupal\preview_link\Entity\PreviewLink;
+use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
+use Drupal\Tests\node\Traits\NodeCreationTrait;
 
 /**
  * Test preview link access.
@@ -10,6 +12,14 @@ use Drupal\preview_link\Entity\PreviewLink;
  * @group preview_link
  */
 class PreviewLinkAccessTest extends PreviewLinkBase {
+
+  use ContentTypeCreationTrait;
+  use NodeCreationTrait;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static $modules = ['node', 'filter'];
 
   /**
    * Node for testing.
@@ -26,15 +36,22 @@ class PreviewLinkAccessTest extends PreviewLinkBase {
   protected $previewLink;
 
   /**
+   * The preview link storage.
+   *
+   * @var \Drupal\preview_link\PreviewLinkStorageInterface
+   */
+  protected $storage;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
     parent::setUp();
+    $this->installConfig(['node', 'filter']);
+    $this->createContentType(['type' => 'page']);
+    $this->storage = $this->container->get('entity_type.manager')->getStorage('preview_link');
     $this->node = $this->createNode();
-    $this->previewLink = PreviewLink::create([
-      'entity_type_id' => 'node',
-      'entity_id' => $this->node->id(),
-    ]);
+    $this->previewLink = PreviewLink::create()->addEntity($this->node);
     $this->previewLink->save();
   }
 

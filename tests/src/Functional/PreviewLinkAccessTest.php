@@ -26,6 +26,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
   public static $modules = [
     'entity_test',
     'preview_link',
+    'preview_link_test',
   ];
 
   /**
@@ -163,10 +164,9 @@ class PreviewLinkAccessTest extends BrowserTestBase {
    *   The preview link, or null if no preview link generated.
    */
   protected function getNewPreviewLinkForEntity(ContentEntityInterface $entity) {
-    /** @var \Drupal\preview_link\PreviewLinkStorage $storage */
-    $storage = $this->container->get('entity_type.manager')
-      ->getStorage('preview_link');
-    return $storage->createPreviewLinkForEntity($entity);
+    $previewLink = PreviewLink::create()->addEntity($entity);
+    $previewLink->save();
+    return $previewLink;
   }
 
 }

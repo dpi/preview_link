@@ -2,10 +2,9 @@
 
 namespace Drupal\Tests\preview_link\Functional;
 
-use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTestRevPub;
 use Drupal\node\NodeInterface;
-use Drupal\preview_link\PreviewLinkStorageInterface;
+use Drupal\preview_link\Entity\PreviewLink;
 use Drupal\Tests\BrowserTestBase;
 
 /**
@@ -29,6 +28,7 @@ class PreviewLinkTest extends BrowserTestBase {
     'filter',
     'entity_test',
     'preview_link_test',
+    'preview_link_test_time',
   ];
 
   /**
@@ -50,8 +50,12 @@ class PreviewLinkTest extends BrowserTestBase {
    */
   public function setUp() {
     parent::setUp();
-    $this->admin = $this->createUser(['generate preview links']);
     $this->createContentType(['type' => 'page']);
+    $this->admin = $this->createUser([
+      'generate preview links',
+      'access content',
+      'edit any page content',
+    ]);
     $this->node = $this->createNode(['status' => NodeInterface::NOT_PUBLISHED]);
 
     \Drupal::configFactory()
@@ -61,6 +65,11 @@ class PreviewLinkTest extends BrowserTestBase {
         'entity_test_revpub' => ['entity_test_revpub'],
       ])
       ->save();
+
+    /** @var \Drupal\preview_link_test\TimeMachine $timeMachine */
+    $timeMachine = \Drupal::service('datetime.time');
+    $currentTime = new \DateTime('14 May 2012 15:00:00');
+    $timeMachine->setTime($currentTime);
   }
 
   /**
@@ -73,9 +82,7 @@ class PreviewLinkTest extends BrowserTestBase {
 
     $assert = $this->assertSession();
     // Can only be visited by users with correct permission.
-    $url = Url::fromRoute('entity.node.generate_preview_link', [
-      'node' => $this->node->id(),
-    ]);
+    $url = $this->node->toUrl('preview-link-generate');
     $this->drupalGet($url);
     $assert->statusCodeEquals(403);
 
@@ -91,7 +98,7 @@ class PreviewLinkTest extends BrowserTestBase {
     $assert->responseContains($this->node->getTitle());
 
     // Submitting form re-generates the link.
-    $this->drupalPostForm($url, [], 'Regenerate preview link');
+    $this->drupalPostForm($url, [], 'Save and regenerate preview link');
     $new_link = $this->cssSelect('.preview-link__link')[0]->getText();
     $this->assertNotEquals($link, $new_link);
 
@@ -125,14 +132,13 @@ class PreviewLinkTest extends BrowserTestBase {
     $entity = EntityTestRevPub::create();
     $entity->save();
 
-    $previewLinkStorage = \Drupal::entityTypeManager()->getStorage('preview_link');
-    assert($previewLinkStorage instanceof PreviewLinkStorageInterface);
-    $previewLink = $previewLinkStorage->createPreviewLinkForEntity($entity);
+    $previewLink = PreviewLink::create()->addEntity($entity);
+    $previewLink->save();
     $token = $previewLink->getToken();
     $previewLink->save();
     $this->assertEquals($currentTime->getTimestamp(), $previewLink->getGeneratedTimestamp());
 
-    $url = Url::fromRoute('entity.entity_test_revpub.generate_preview_link', ['entity_test_revpub' => $entity->id()]);
+    $url = $entity->toUrl('preview-link-generate');
     $this->drupalGet($url);
     $this->assertSession()->pageTextContains('Generate a preview link for the entity.');
     $currentTime = new \DateTime('14 May 2014 20:00:00');
@@ -141,10 +147,104 @@ class PreviewLinkTest extends BrowserTestBase {
     $this->assertSession()->pageTextContains('Preview link will now expire at Wed, 05/21/2014 - 20:00.');
 
     // Reload preview link.
-    $previewLink = $previewLinkStorage->getPreviewLinkForEntity($entity);
+    $previewLink = PreviewLink::load($previewLink->id());
     $this->assertEquals($currentTime->getTimestamp(), $previewLink->getGeneratedTimestamp());
     // Ensure token was not regenerated.
     $this->assertEquals($token, $previewLink->getToken());
+  }
+
+  /**
+   * Tests managing entities for a Preview Link.
+   */
+  public function testEntities() {
+    $this->drupalLogin($this->createUser([
+      'generate preview links',
+      'view test entity',
+    ]));
+    $entity1 = EntityTestRevPub::create([
+      'name' => 'foo1',
+    ]);
+    $entity1->save();
+    $entity2 = EntityTestRevPub::create([
+      'name' => 'foo2',
+    ]);
+    $entity2->save();
+
+    $generateUrl1 = $entity1->toUrl('preview-link-generate');
+    $this->drupalGet($generateUrl1);
+    $this->assertSession()->fieldValueEquals('entities[0][target_id]', 'foo1 (1)');
+    $this->assertSession()->elementAttributeContains('css', '[name="entities[0][target_id]"]', 'disabled', 'disabled');
+    $this->assertSession()->fieldExists('entities[1][target_id]');
+
+    // Adding entity2, entity2 should remain editable. entity1 not editable.
+    $edit = [
+      'entities[1][target_id]' => 'foo2 (2)',
+    ];
+    $this->drupalPostForm(NULL, $edit, 'Save');
+
+    $this->assertSession()->pageTextContains('Preview Link saved.');
+    $this->assertSession()->fieldValueEquals('entities[0][target_id]', 'foo1 (1)');
+    $this->assertSession()->fieldValueEquals('entities[1][target_id]', 'foo2 (2)');
+    $this->assertSession()->elementAttributeContains('css', '[name="entities[0][target_id]"]', 'disabled', 'disabled');
+    $entity2Element = $this->assertSession()->elementExists('css', '[name="entities[1][target_id]"]');
+    $this->assertFalse($entity2Element->hasAttribute('disabled'));
+    $this->assertSession()->fieldExists('entities[2][target_id]');
+
+    // Navigating to the other entity, entity1 now editable.
+    $generateUrl2 = $entity2->toUrl('preview-link-generate');
+    $this->drupalGet($generateUrl2);
+    $this->assertSession()->fieldValueEquals('entities[0][target_id]', 'foo1 (1)');
+    $this->assertSession()->fieldValueEquals('entities[1][target_id]', 'foo2 (2)');
+    $entity1Element = $this->assertSession()->elementExists('css', '[name="entities[0][target_id]"]');
+    $this->assertFalse($entity1Element->hasAttribute('disabled'));
+    $this->assertSession()->elementAttributeContains('css', '[name="entities[1][target_id]"]', 'disabled', 'disabled');
+  }
+
+  /**
+   * Tests unique entities for Preview Link.
+   */
+  public function testEntitiesUniqueConstraint() {
+    $this->drupalLogin($this->createUser([
+      'generate preview links',
+      'view test entity',
+    ]));
+    $entity = EntityTestRevPub::create([
+      'name' => 'foo1',
+    ]);
+    $entity->save();
+
+    $generateUrl = $entity->toUrl('preview-link-generate');
+    $this->drupalGet($generateUrl);
+    $edit = [
+      'entities[0][target_id]' => 'foo1 (1)',
+      'entities[1][target_id]' => 'foo1 (1)',
+    ];
+    $this->drupalPostForm(NULL, $edit, 'Save');
+    $this->assertSession()->pageTextContains('test entity - revisions and publishing status is already referenced by item #1.');
+  }
+
+  /**
+   * Tests managing entities not possible when config is off.
+   */
+  public function testEntitiesInaccessible() {
+    \Drupal::configFactory()->getEditable('preview_link.settings')
+      ->set('multiple_entities', FALSE)
+      ->save(TRUE);
+
+    $this->drupalLogin($this->createUser([
+      'generate preview links',
+    ]));
+    $entity = EntityTestRevPub::create([
+      'name' => 'foo1',
+    ]);
+    $entity->save();
+
+    $generateUrl = $entity->toUrl('preview-link-generate');
+    $this->drupalGet($generateUrl);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->buttonExists('op');
+    $this->assertSession()->pageTextNotContains('The associated entities this preview link unlocks.');
+    $this->assertSession()->fieldNotExists('entities[0][target_id]');
   }
 
 }

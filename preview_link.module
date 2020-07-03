@@ -6,20 +6,22 @@
  */
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\preview_link\PreviewLinkHooks;
+use Drupal\preview_link\PreviewLinkUtility;
 use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
 
 /**
  * Implements hook_entity_type_alter().
  */
 function preview_link_entity_type_alter(array &$entity_types) {
-  $supported_entity_types = array_filter($entity_types, function (EntityTypeInterface $type) use ($entity_types) {
-    return $type->isRevisionable();
-  });
+  $supported_entity_types = array_filter($entity_types, [PreviewLinkUtility::class, 'isEntityTypeSupported']);
 
   /** @var \Drupal\Core\Entity\ContentEntityType $type */
   foreach ($supported_entity_types as $type) {
@@ -27,6 +29,10 @@ function preview_link_entity_type_alter(array &$entity_types) {
     if (empty($providers['preview_link'])) {
       $providers['preview_link'] = PreviewLinkRouteProvider::class;
       $type->setHandlerClass('route_provider', $providers);
+    }
+
+    if (!$type->hasLinkTemplate('preview-link-generate')) {
+      $type->setLinkTemplate('preview-link-generate',  $type->getLinkTemplate('canonical') . '/generate-preview-link');
     }
   }
 }
@@ -67,4 +73,21 @@ function preview_link_entity_access(EntityInterface $entity, $operation, Account
     return $neutral;
   }
   return \Drupal::service('access_check.preview_link')->access($entity, \Drupal::routeMatch()->getParameter('preview_token'));
+}
+
+/**
+ * Implements hook_entity_access().
+ */
+function preview_link_entity_field_access(string $operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL): AccessResultInterface {
+  $storageDefinition = $field_definition->getFieldStorageDefinition();
+  if ($storageDefinition->getTargetEntityTypeId() !== 'preview_link') {
+    return AccessResult::neutral();
+  }
+
+  if ($storageDefinition->getName() === 'entities' && $operation === 'edit') {
+    return AccessResult::forbiddenIf(\Drupal::configFactory()->get('preview_link.settings')->get('multiple_entities') !== TRUE)
+      ->addCacheTags(['config:preview_link.settings']);
+  }
+
+  return AccessResult::neutral();
 }

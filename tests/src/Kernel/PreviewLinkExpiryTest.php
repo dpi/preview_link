@@ -3,6 +3,8 @@
 namespace Drupal\Tests\preview_link\Kernel;
 
 use Drupal\preview_link\Entity\PreviewLink;
+use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
+use Drupal\Tests\node\Traits\NodeCreationTrait;
 
 /**
  * Preview link expiry test.
@@ -10,6 +12,14 @@ use Drupal\preview_link\Entity\PreviewLink;
  * @group preview_link
  */
 class PreviewLinkExpiryTest extends PreviewLinkBase {
+
+  use ContentTypeCreationTrait;
+  use NodeCreationTrait;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static $modules = ['node', 'filter'];
 
   /**
    * Testing node.
@@ -19,10 +29,20 @@ class PreviewLinkExpiryTest extends PreviewLinkBase {
   protected $node;
 
   /**
+   * The preview link storage.
+   *
+   * @var \Drupal\preview_link\PreviewLinkStorageInterface
+   */
+  protected $storage;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
     parent::setUp();
+    $this->installConfig(['node', 'filter']);
+    $this->createContentType(['type' => 'page']);
+    $this->storage = $this->container->get('entity_type.manager')->getStorage('preview_link');
     $this->node = $this->createNode();
   }
 
@@ -34,12 +54,9 @@ class PreviewLinkExpiryTest extends PreviewLinkBase {
     // Add an extra day to make it expired.
     $days = $days + 1;
     $days_in_seconds = $days * 86400;
-    $expired_preview_link = PreviewLink::create([
-      'entity_type_id' => 'node',
-      'entity_id' => $this->node->id(),
-      // Set a timestamp that will definitely be expired.
-      'generated_timestamp' => $days_in_seconds,
-    ]);
+    $expired_preview_link = PreviewLink::create()->addEntity($this->node);
+    // Set a timestamp that will definitely be expired.
+    $expired_preview_link->generated_timestamp = $days_in_seconds;
     $expired_preview_link->save();
     $id = $expired_preview_link->id();
 

@@ -1,0 +1,7 @@
+preview_link.session_tokens.remove:
+  path: '/preview-link/session-tokens/remove'
+  defaults:
+    _controller: '\Drupal\preview_link\Controller\PreviewLinkSessionTokenController::removeTokens'
+    _title: 'Remove all Preview Link session tokens'
+  requirements:
+    _access_preview_session_exists: 'TRUE'
