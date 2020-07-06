@@ -69,10 +69,26 @@ function preview_link_entity_access(EntityInterface $entity, $operation, Account
   $neutral = AccessResult::neutral()
     ->addCacheableDependency($entity)
     ->addCacheContexts(['preview_link_route']);
+
   if ($operation !== 'view' || !($entity instanceof ContentEntityInterface)) {
     return $neutral;
   }
-  return \Drupal::service('access_check.preview_link')->access($entity, \Drupal::routeMatch()->getParameter('preview_token'));
+
+  $route_match = \Drupal::routeMatch();
+  $entity_type_ids = array_keys(\Drupal::entityTypeManager()->getDefinitions());
+  $route_entity = NULL;
+  foreach ($entity_type_ids as $entity_type_id) {
+    if ($route_entity = $route_match->getParameter($entity_type_id)) {
+      break;
+    }
+  }
+
+  // Only run our access checks on the entity we're previewing.
+  if ($route_entity instanceof ContentEntityInterface && $route_entity->id() === $entity->id()) {
+    return \Drupal::service('access_check.preview_link')->access($entity, $route_match->getParameter('preview_token'));
+  }
+
+  return $neutral;
 }
 
 /**

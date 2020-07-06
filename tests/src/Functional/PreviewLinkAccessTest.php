@@ -3,7 +3,10 @@
 namespace Drupal\Tests\preview_link\Functional;
 
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\Core\Url;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\preview_link\Entity\PreviewLink;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\entity_test\Entity\EntityTestRev;
@@ -152,6 +155,70 @@ class PreviewLinkAccessTest extends BrowserTestBase {
     ])->save();
     $this->drupalGet($url);
     $this->assertSession()->statusCodeEquals(200);
+  }
+
+  /**
+   * Tests access for a referenced entity on a preview link route.
+   */
+  public function testPreviewLinkReferencedEntity() {
+    // Set up an entity reference field.
+    $field_storage = FieldStorageConfig::create([
+      'field_name' => 'entity_test_rev_ref',
+      'entity_type' => 'entity_test_rev',
+      'type' => 'entity_reference',
+      'settings' => [
+        'target_type' => 'entity_test_rev',
+      ],
+    ]);
+    $field_storage->save();
+    $instance = FieldConfig::create([
+      'field_storage' => $field_storage,
+      'bundle' => 'entity_test_rev',
+      'label' => $this->randomMachineName(),
+    ]);
+    $instance->save();
+
+    // Set up the field display.
+    EntityViewDisplay::create([
+      'targetEntityType' => 'entity_test_rev',
+      'bundle' => 'entity_test_rev',
+      'mode' => 'default',
+      'status' => TRUE,
+    ])->setComponent('entity_test_rev_ref', [
+      // Render the entity in full to trigger the "view" operation since
+      // EntityTestAccessControlHandler has $viewLabelOperation set to TRUE.
+      'type' => 'entity_reference_entity_view',
+    ])->save();
+
+    // Create test content.
+    $reference = EntityTestRev::create();
+    $reference->save();
+    $referee = EntityTestRev::create([
+      'entity_test_rev_ref' => $reference,
+    ]);
+    $referee->save();
+
+    $account = $this->createUser([
+      'view test entity',
+    ]);
+    $this->drupalLogin($account);
+
+    $preview = $this->getNewPreviewLinkForEntity($referee);
+    $token = $preview->getToken();
+
+    // Check the referenced entity shows on the preview page.
+    $url = Url::fromRoute('entity.entity_test_rev.preview_link', [
+      'entity_test_rev' => $referee->id(),
+      'preview_token' => $token,
+    ]);
+    $this->drupalGet($url);
+    $this->assertSession()->pageTextContains($reference->label());
+
+    // Check it still shows the referenced entity when it has a preview link
+    // as well.
+    $this->getNewPreviewLinkForEntity($reference);
+    $this->drupalGet($url);
+    $this->assertSession()->pageTextContains($reference->label());
   }
 
   /**
