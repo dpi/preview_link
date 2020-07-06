@@ -3,6 +3,8 @@
 namespace Drupal\preview_link\Entity;
 
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
 
 /**
  * Interface for the preview link entity.
@@ -10,12 +12,15 @@ use Drupal\Core\Entity\ContentEntityInterface;
 interface PreviewLinkInterface extends ContentEntityInterface {
 
   /**
-   * The URL for this preview link.
+   * The URL for this preview link for an entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   A host entity.
    *
    * @return \Drupal\Core\Url
    *   The url object.
    */
-  public function getUrl();
+  public function getUrl(EntityInterface $entity): Url;
 
   /**
    * Gets thew new token.
@@ -54,5 +59,31 @@ interface PreviewLinkInterface extends ContentEntityInterface {
    *   The timestamp.
    */
   public function getGeneratedTimestamp();
+
+  /**
+   * Get entities this preview link unlocks.
+   *
+   * Ideally preview link access is determined via PreviewLinkHost service.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface[]
+   *   Associated entities.
+   */
+  public function getEntities(): array;
+
+  /**
+   * Set the entity this preview link unlocks.
+   *
+   * @return \Drupal\preview_link\Entity\PreviewLinkInterface
+   *   Returns the preview link for chaining.
+   */
+  public function setEntities(array $entities);
+
+  /**
+   * Add an entity for this preview link to unlock.
+   *
+   * @return \Drupal\preview_link\Entity\PreviewLinkInterface
+   *   Returns the preview link for chaining.
+   */
+  public function addEntity(EntityInterface $entity);
 
 }

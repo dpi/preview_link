@@ -20,6 +20,11 @@ function preview_link_test_entity_type_alter(array &$entity_types) {
     if ($entityTestRevPub->hasLinkTemplate('latest-version')) {
       $entityTestRevPub->setLinkTemplate('latest-version', '/entity_test_revpub/manage/{entity_test_revpub}/latest');
     }
+    // \preview_link_entity_type_alter() already set path based on the wrong
+    // canonical path override it here.
+    if ($entityTestRevPub->hasLinkTemplate('preview-link-generate')) {
+      $entityTestRevPub->setLinkTemplate('preview-link-generate', '/entity_test_revpub/manage/{entity_test_revpub}/generate-preview-link');
+    }
     $routeProviders = $entityTestRevPub->getRouteProviderClasses();
     $routeProviders['html'] = Drupal\Core\Entity\Routing\DefaultHtmlRouteProvider::class;
     $entityTestRevPub->setHandlerClass('route_provider', $routeProviders);
