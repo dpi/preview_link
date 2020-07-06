@@ -90,7 +90,9 @@ class PreviewLinkCanonicalRerouteAccessCheck implements AccessInterface {
     }
 
     if (!$this->previewLinkHost->isToken($entity, $claimedTokens)) {
-      return AccessResult::neutral('This session does has activated preview link tokens that match this entity.')->addCacheableDependency($cacheability);
+      // This session doesnt have an activated preview link tokens matching this
+      // entity.
+      return AccessResult::allowed()->addCacheableDependency($cacheability);
     }
 
     // Check if any keys in this session unlock this entity.

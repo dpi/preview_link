@@ -178,4 +178,39 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
     ])->toString());
   }
 
+  /**
+   * Tests accessibility of entities where session doesnt have a relevant token.
+   *
+   * Tests an accessible entity with a claimed key can still access entities
+   * not matching claimed token.
+   */
+  public function testCanonicalAccessNoClaimedToken(): void {
+    user_role_change_permissions(RoleInterface::ANONYMOUS_ID, [
+      'view test entity' => TRUE,
+    ]);
+
+    // Must be accessible.
+    $claimedEntity = EntityTestRevPub::create();
+    $claimedEntity->save();
+
+    $previewLink = PreviewLink::create()->addEntity($claimedEntity);
+    $previewLink->save();
+
+    // Claim the token to the session.
+    $previewLinkUrl = Url::fromRoute('entity.entity_test_revpub.preview_link', [
+      $claimedEntity->getEntityTypeId() => $claimedEntity->id(),
+      'preview_token' => $previewLink->getToken(),
+    ]);
+    $this->drupalGet($previewLinkUrl);
+    $this->assertSession()->statusCodeEquals(200);
+
+    $otherEntity = EntityTestRevPub::create();
+    // Must be accessible.
+    $otherEntity->setPublished();
+    $otherEntity->save();
+
+    $this->drupalGet($otherEntity->toUrl());
+    $this->assertSession()->statusCodeEquals(200);
+  }
+
 }
