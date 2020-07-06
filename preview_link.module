@@ -74,18 +74,13 @@ function preview_link_entity_access(EntityInterface $entity, $operation, Account
     return $neutral;
   }
 
-  $route_match = \Drupal::routeMatch();
-  $entity_type_ids = array_keys(\Drupal::entityTypeManager()->getDefinitions());
-  $route_entity = NULL;
-  foreach ($entity_type_ids as $entity_type_id) {
-    if ($route_entity = $route_match->getParameter($entity_type_id)) {
-      break;
-    }
-  }
+  $routeMatch = \Drupal::routeMatch();
+  $entityParameterName = $routeMatch->getRouteObject()->getOption('preview_link.entity_type_id');
+  $route_entity = $routeMatch->getParameter($entityParameterName);
 
   // Only run our access checks on the entity we're previewing.
   if ($route_entity instanceof ContentEntityInterface && $route_entity->id() === $entity->id()) {
-    return \Drupal::service('access_check.preview_link')->access($entity, $route_match->getParameter('preview_token'));
+    return \Drupal::service('access_check.preview_link')->access($entity, $routeMatch->getParameter('preview_token'));
   }
 
   return $neutral;
