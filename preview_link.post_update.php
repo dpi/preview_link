@@ -5,6 +5,7 @@
  * Post update functions for Preview Link.
  */
 
+use Drupal\Core\Site\Settings;
 use Drupal\preview_link\Entity\PreviewLink;
 use Drupal\preview_link\PreviewLinkStorageInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -35,12 +36,9 @@ function preview_link_post_update_0001_migrate_entity_references(): void {
 
 /**
  * Migrates entity relationship data to new field.
- *
- * @param array $sandbox
- *   Sandbox for maintaining position.
  */
 function preview_link_post_update_0002_migrate_entity_references(array &$sandbox) {
-  $limit = 10;
+  $limit = Settings::get('entity_update_batch_size', 50);
 
   $entityTypeManager = \Drupal::entityTypeManager();
   $previewLinkStorage = $entityTypeManager->getStorage('preview_link');

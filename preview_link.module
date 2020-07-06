@@ -76,7 +76,7 @@ function preview_link_entity_access(EntityInterface $entity, $operation, Account
 }
 
 /**
- * Implements hook_entity_access().
+ * Implements hook_entity_field_access().
  */
 function preview_link_entity_field_access(string $operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL): AccessResultInterface {
   $storageDefinition = $field_definition->getFieldStorageDefinition();

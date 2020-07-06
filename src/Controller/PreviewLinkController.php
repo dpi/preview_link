@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\preview_link\Controller;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -64,7 +65,9 @@ class PreviewLinkController extends ControllerBase {
     $view = $this->entityTypeManager->getViewBuilder($entity->getEntityTypeId())->view($entity);
     // Subsequent [cached] requests to the page need to be able to activate
     // links.
-    $view['#cache']['contexts'] = ['session'];
+    (new CacheableMetadata())
+      ->addCacheContexts(['session'])
+      ->applyTo($view);
     return $view;
   }
 

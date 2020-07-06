@@ -43,7 +43,7 @@ class PreviewLinkSessionExistsAccessCheck implements AccessInterface {
    */
   public function access(Request $request = NULL): AccessResultInterface {
     return AccessResult::allowedIf($request ? $this->sessionConfiguration->hasSession($request) : FALSE)
-      ->addCacheableDependency(['session.exists']);
+      ->addCacheContexts(['session.exists']);
   }
 
 }
