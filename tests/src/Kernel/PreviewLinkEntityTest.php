@@ -44,7 +44,7 @@ class PreviewLinkEntityTest extends PreviewLinkBase {
   public function testSetEntities() {
     $previewLink = PreviewLink::create();
     $entity = EntityTestRevPub::create();
-    $previewLink->entities = [$entity];
+    $previewLink->setEntities([$entity]);
     $this->assertCount(1, $previewLink->entities->referencedEntities());
     $previewLink->setEntities([$entity]);
     // Using setter should override previous values, therefore count is same.
