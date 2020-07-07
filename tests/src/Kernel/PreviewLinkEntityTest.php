@@ -47,6 +47,7 @@ class PreviewLinkEntityTest extends PreviewLinkBase {
     $previewLink->entities = [$entity];
     $this->assertCount(1, $previewLink->entities->referencedEntities());
     $previewLink->setEntities([$entity]);
+    // Using setter should override previous values, therefore count is same.
     $this->assertCount(1, $previewLink->entities->referencedEntities());
   }
 

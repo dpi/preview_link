@@ -142,7 +142,6 @@ class PreviewLinkForm extends ContentEntityForm {
       '@lifetime' => $this->dateFormatter->formatInterval($this->linkExpiry->getLifetime(), 1),
     ]);
 
-    $host = $this->getHostEntity($routeMatch);
     $previewLink = $this->getEntity();
     $link = Url::fromRoute('entity.' . $host->getEntityTypeId() . '.preview_link', [
       $host->getEntityTypeId() => $host->id(),
