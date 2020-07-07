@@ -24,10 +24,7 @@ use Drupal\Core\Url;
  *     }
  *   },
  *   entity_keys = {
- *     "id" = "id",
- *     "token" = "token",
- *     "entity_id" = "entity_id",
- *     "entity_type_id" = "entity_type_id"
+ *     "id" = "id"
  *   }
  * )
  */
