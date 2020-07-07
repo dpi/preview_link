@@ -7,7 +7,6 @@ namespace Drupal\preview_link\Plugin\Field\FieldWidget;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\dynamic_entity_reference\Plugin\Field\FieldWidget\DynamicEntityReferenceWidget;
 use Drupal\preview_link\Form\PreviewLinkForm;
@@ -30,7 +29,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @internal
  */
-final class PreviewLinkEntitiesWidget extends DynamicEntityReferenceWidget implements ContainerFactoryPluginInterface {
+final class PreviewLinkEntitiesWidget extends DynamicEntityReferenceWidget {
 
   /**
    * The current route match.
@@ -40,7 +39,7 @@ final class PreviewLinkEntitiesWidget extends DynamicEntityReferenceWidget imple
   protected $routeMatch;
 
   /**
-   * Constructs a WidgetBase object.
+   * Constructs a PreviewLinkEntitiesWidget object.
    *
    * @param string $plugin_id
    *   The plugin_id for the widget.
