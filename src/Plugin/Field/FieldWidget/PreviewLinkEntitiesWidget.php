@@ -93,7 +93,7 @@ final class PreviewLinkEntitiesWidget extends DynamicEntityReferenceWidget {
 
     $targetType = $items->get($delta)->target_type;
     $targetId = $items->get($delta)->target_id;
-    $host = $formObject->getHostEntity(\Drupal::routeMatch());
+    $host = $formObject->getHostEntity($this->routeMatch);
     $hostEntityTypeId = $host->getEntityTypeId();
 
     // Swap select field to value.
