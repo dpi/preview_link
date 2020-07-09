@@ -1,7 +1,7 @@
 services:
   access_check.preview_link.canonical_rerouter:
     class: Drupal\preview_link\Access\PreviewLinkCanonicalRerouteAccessCheck
-    arguments: ['@tempstore.private', '@preview_link.host']
+    arguments: ['@tempstore.private', '@preview_link.host', '@current_route_match']
     tags:
       - { name: access_check, applies_to: _access_preview_link_canonical_rerouter }
   access_check.preview_link:
