@@ -5,8 +5,10 @@
  * Post update functions for Preview Link.
  */
 
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\preview_link\Entity\PreviewLink;
+use Drupal\preview_link\Entity\PreviewLinkInterface;
 use Drupal\preview_link\PreviewLinkStorageInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -14,7 +16,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 /**
  * Add the 'entities' field to 'preview_link' entities.
  */
-function preview_link_post_update_0001_migrate_entity_references(): void {
+function preview_link_post_update_0001_entities_field(): void {
   $storageDefinition = BaseFieldDefinition::create('dynamic_entity_reference')
     ->setLabel(t('Entities'))
     ->setDescription(t('The associated entities this preview link unlocks.'))
@@ -32,6 +34,20 @@ function preview_link_post_update_0001_migrate_entity_references(): void {
     'preview_link',
     $storageDefinition
   );
+
+  // Change the column schema so the update doesnt complain when entities are
+  // resaved in the next post.
+  $dbSchema = \Drupal::database()->schema();
+  $dbSchema->changeField('preview_link', 'entity_type_id', 'entity_type_id', [
+    'type' => 'varchar',
+    'not null' => FALSE,
+    'length' => '255',
+  ]);
+  $dbSchema->changeField('preview_link', 'entity_id', 'entity_id', [
+    'type' => 'varchar',
+    'not null' => FALSE,
+    'length' => '255',
+  ]);
 }
 
 /**
@@ -58,9 +74,11 @@ function preview_link_post_update_0002_migrate_entity_references(array &$sandbox
   $sandbox['#finished'] = count($previewLinks) === 0 ? 1 : 0;
 
   foreach ($previewLinks as $previewLink) {
+    assert($previewLink instanceof PreviewLinkInterface);
     $sandbox['id_high_water_mark'] = $previewLink->id();
 
-    $entityTypeId = $previewLink->entity_type_id->value ?? NULL;
+    // Cant access the field normally, field definition is no longer present.
+    $entityTypeId = $previewLink->entity_type_id[LanguageInterface::LANGCODE_DEFAULT] ?? NULL;
     try {
       $hostStorage = $entityTypeManager->getStorage($entityTypeId);
     }
@@ -69,7 +87,7 @@ function preview_link_post_update_0002_migrate_entity_references(array &$sandbox
       continue;
     }
 
-    $entityId = $previewLink->entity_id->value ?? NULL;
+    $entityId = $previewLink->entity_id[LanguageInterface::LANGCODE_DEFAULT] ?? NULL;
     $entity = $hostStorage->load($entityId);
     if (!$entity) {
       // Entity no longer exists.

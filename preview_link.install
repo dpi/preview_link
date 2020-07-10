@@ -38,3 +38,19 @@ function preview_link_update_8202() {
   $entityType->set('entity_keys', $keys);
   $definitionUpdateManager->updateEntityType($entityType);
 }
+
+/**
+ * Install Dynamic Entity Reference.
+ */
+function preview_link_update_8203() {
+  $module = 'dynamic_entity_reference';
+  if (\Drupal::moduleHandler()->moduleExists($module)) {
+    return \t('Dynamic Entity Reference is already installed!');
+  }
+  /** @var \Drupal\Core\Extension\ModuleInstallerInterface $moduleInstaller */
+  $moduleInstaller = \Drupal::service('module_installer');
+  $installed = $moduleInstaller->install([$module]);
+  return $installed
+    ? \t('Dynamic Entity Reference installed successfully')
+    : \t('Dynamic Entity Reference failed to install');
+}
