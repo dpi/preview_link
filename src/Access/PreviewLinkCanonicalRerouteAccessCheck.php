@@ -8,12 +8,11 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
-use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\preview_link\Exception\PreviewLinkRerouteException;
 use Drupal\preview_link\PreviewLinkHostInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Route;
 
 /**
  * Reroutes users from a canonical route to preview link route.
@@ -38,25 +37,31 @@ class PreviewLinkCanonicalRerouteAccessCheck implements AccessInterface {
   protected $previewLinkHost;
 
   /**
+   * The current route match.
+   *
+   * @var \Drupal\Core\Routing\CurrentRouteMatch
+   */
+  protected $routeMatch;
+
+  /**
    * PreviewLinkCanonicalRerouteAccessCheck constructor.
    *
    * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $privateTempStoreFactory
    *   Private temp store factory.
    * @param \Drupal\preview_link\PreviewLinkHostInterface $previewLinkHost
    *   Preview link host service.
+   * @param \Drupal\Core\Routing\CurrentRouteMatch $routeMatch
+   *   The current route match.
    */
-  public function __construct(PrivateTempStoreFactory $privateTempStoreFactory, PreviewLinkHostInterface $previewLinkHost) {
+  public function __construct(PrivateTempStoreFactory $privateTempStoreFactory, PreviewLinkHostInterface $previewLinkHost, CurrentRouteMatch $routeMatch) {
     $this->privateTempStoreFactory = $privateTempStoreFactory;
     $this->previewLinkHost = $previewLinkHost;
+    $this->routeMatch = $routeMatch;
   }
 
   /**
    * Checks if an activated preview link token is associated with this entity.
    *
-   * @param \Symfony\Component\Routing\Route $route
-   *   The route to check against.
-   * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
-   *   The route match.
    * @param \Symfony\Component\HttpFoundation\Request|null $request
    *   The request.
    *
@@ -66,8 +71,22 @@ class PreviewLinkCanonicalRerouteAccessCheck implements AccessInterface {
    * @throws \Drupal\preview_link\Exception\PreviewLinkRerouteException
    *   When a claimed token grants access to entity for this route match.
    */
-  public function access(Route $route, RouteMatchInterface $routeMatch, Request $request = NULL) {
+  public function access(Request $request = NULL) {
+    $cacheability = (new CacheableMetadata())
+      ->addCacheContexts(['session', 'route']);
+
+    // Dont use argument resolved route match or route, get the real route match
+    // from the master request.
+    $routeMatch = $this->routeMatch->getMasterRouteMatch();
+    $route = $routeMatch->getRouteObject();
+
     $entityParameterName = $route->getRequirement('_access_preview_link_canonical_rerouter');
+    if (!isset($entityParameterName)) {
+      // If the requirement doesnt exist then the master request isn't the
+      // canonical route, its probably simulated from something like menu or
+      // breadcrumb.
+      return AccessResult::allowed()->addCacheableDependency($cacheability);
+    }
 
     $cacheability = (new CacheableMetadata())
       ->addCacheContexts(['session', 'route']);
