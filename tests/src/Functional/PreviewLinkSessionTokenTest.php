@@ -10,6 +10,7 @@ use Drupal\entity_test\Entity\EntityTestRevPub;
 use Drupal\preview_link\Entity\PreviewLink;
 use Drupal\preview_link_test\TimeMachine;
 use Drupal\Tests\BrowserTestBase;
+use Drupal\Tests\system\Functional\Cache\AssertPageCacheContextsAndTagsTrait;
 use Drupal\user\RoleInterface;
 
 /**
@@ -18,6 +19,8 @@ use Drupal\user\RoleInterface;
  * @group preview_link
  */
 class PreviewLinkSessionTokenTest extends BrowserTestBase {
+
+  use AssertPageCacheContextsAndTagsTrait;
 
   /**
    * {@inheritdoc}
@@ -58,8 +61,10 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
 
     // Navigating to these entities proves no access and primes caches.
     $this->drupalGet($entity1->toUrl());
+    $this->assertNoCacheContext('session');
     $this->assertSession()->statusCodeEquals(403);
     $this->drupalGet($entity2->toUrl());
+    $this->assertNoCacheContext('session');
     $this->assertSession()->statusCodeEquals(403);
 
     $previewLink = PreviewLink::create()
@@ -72,6 +77,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
     ]);
     $this->drupalGet($previewLinkUrl1);
     $this->assertSession()->statusCodeEquals(200);
+    $this->assertCacheContext('session');
 
     // Navigating to canonical should redirect to preview link.
     $this->drupalGet($entity2->toUrl());
@@ -81,11 +87,13 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
     ]);
     $this->assertSession()->statusCodeEquals(200);
     $this->assertSession()->addressEquals($previewLinkUrl2);
+    $this->assertCacheContext('session');
     $this->assertSession()->pageTextContains('You are viewing this page because a preview link granted you access. Click here to remove token.');
 
     // Now back to the canonical route for the original entity.
     $this->drupalGet($entity1->toUrl());
     $this->assertSession()->statusCodeEquals(200);
+    $this->assertCacheContext('session');
     $this->assertSession()->addressEquals($previewLinkUrl1);
     $this->assertSession()->pageTextContains('You are viewing this page because a preview link granted you access. Click here to remove token.');
 
@@ -249,6 +257,38 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
     $editUrl = $claimedEntity->toUrl('edit-form');
     $this->drupalGet($editUrl);
     $this->assertSession()->addressEquals($editUrl->toString());
+  }
+
+  /**
+   * Test accessing a page without preview links.
+   */
+  public function testEntityNoPreviewLink(): void {
+    $this->drupalPlaceBlock('system_breadcrumb_block');
+
+    $this->drupalLogin($this->createUser([
+      'view test entity',
+      'administer entity_test content',
+    ]));
+
+    $otherEntity = EntityTestMulRevPub::create();
+    $otherEntity->save();
+
+    $claimedEntity = EntityTestMulRevPub::create();
+    $claimedEntity->save();
+
+    $previewLink = PreviewLink::create()->addEntity($claimedEntity);
+    $previewLink->save();
+
+    // Claim the token to the session.
+    $previewLinkUrl = Url::fromRoute('entity.entity_test_mulrevpub.preview_link', [
+      $claimedEntity->getEntityTypeId() => $claimedEntity->id(),
+      'preview_token' => $previewLink->getToken(),
+    ]);
+    $this->drupalGet($previewLinkUrl);
+    $this->assertSession()->statusCodeEquals(200);
+
+    $this->drupalGet($otherEntity->toUrl());
+    $this->assertNoCacheContext('session');
   }
 
 }

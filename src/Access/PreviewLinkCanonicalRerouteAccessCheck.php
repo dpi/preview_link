@@ -73,7 +73,7 @@ class PreviewLinkCanonicalRerouteAccessCheck implements AccessInterface {
    */
   public function access(Request $request = NULL) {
     $cacheability = (new CacheableMetadata())
-      ->addCacheContexts(['session', 'route']);
+      ->addCacheContexts(['route']);
 
     // Dont use argument resolved route match or route, get the real route match
     // from the master request.
@@ -88,9 +88,6 @@ class PreviewLinkCanonicalRerouteAccessCheck implements AccessInterface {
       return AccessResult::allowed()->addCacheableDependency($cacheability);
     }
 
-    $cacheability = (new CacheableMetadata())
-      ->addCacheContexts(['session', 'route']);
-
     if (!$request) {
       return AccessResult::allowed()->addCacheableDependency($cacheability);
     }
@@ -101,6 +98,11 @@ class PreviewLinkCanonicalRerouteAccessCheck implements AccessInterface {
       return AccessResult::allowed()->addCacheableDependency($cacheability);
     }
 
+    if (!$this->previewLinkHost->hasPreviewLinks($entity)) {
+      return AccessResult::allowed()->addCacheableDependency($cacheability);
+    }
+
+    $cacheability->addCacheContexts(['session']);
     $collection = $this->privateTempStoreFactory->get('preview_link');
     $claimedTokens = $collection->get('keys') ?? [];
     if (!$claimedTokens) {
