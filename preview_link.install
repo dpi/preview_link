@@ -10,6 +10,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Utility\UpdateException;
 use Drupal\preview_link\Entity\PreviewLink;
 use Drupal\preview_link\PreviewLinkStorageInterface;
 
@@ -58,9 +59,12 @@ function preview_link_update_8203(): TranslatableMarkup {
   /** @var \Drupal\Core\Extension\ModuleInstallerInterface $moduleInstaller */
   $moduleInstaller = \Drupal::service('module_installer');
   $installed = $moduleInstaller->install([$module]);
-  return $installed
-    ? \t('Dynamic Entity Reference installed successfully')
-    : \t('Dynamic Entity Reference failed to install');
+  if ($installed) {
+    return \t('Dynamic Entity Reference installed successfully');
+  }
+  else {
+    throw new UpdateException('Dynamic Entity Reference failed to install');
+  }
 }
 
 /**
