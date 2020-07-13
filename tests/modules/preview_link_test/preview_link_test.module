@@ -2,10 +2,8 @@
 
 /**
  * @file
- * Hooks for preview_link_test.
+ * Hooks for preview_link_test.module
  */
-
-use Drupal\Core\Entity\Routing\DefaultHtmlRouteProvider;
 
 /**
  * Implements hook_entity_type_alter().
@@ -37,7 +35,7 @@ function preview_link_test_entity_type_alter(array &$entity_types) {
       $entityTestRevPub->setLinkTemplate('preview-link-generate', '/entity_test_revpub/manage/{entity_test_revpub}/generate-preview-link');
     }
     $routeProviders = $entityTestRevPub->getRouteProviderClasses();
-    $routeProviders['html'] = DefaultHtmlRouteProvider::class;
+    $routeProviders['html'] = Drupal\Core\Entity\Routing\DefaultHtmlRouteProvider::class;
     $entityTestRevPub->setHandlerClass('route_provider', $routeProviders);
   }
 }
