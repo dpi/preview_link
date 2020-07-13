@@ -10,6 +10,15 @@
  */
 function preview_link_test_entity_type_alter(array &$entity_types) {
   /** @var \Drupal\Core\Entity\EntityTypeInterface[] $entity_types */
+  // Remove this key since it breaks the update path test. Can be removed after
+  // https://www.drupal.org/project/drupal/issues/3158184.
+  if (isset($entity_types['entity_test_no_bundle'])) {
+    $entityTestNoBundle = $entity_types['entity_test_no_bundle'];
+    $entityKeys = $entityTestNoBundle->getKeys();
+    unset($entityKeys['revision']);
+    $entityTestNoBundle->set('entity_keys', $entityKeys);
+  }
+
   if (isset($entity_types['entity_test_revpub'])) {
     // Fixes entity_test_revpub link templates + route provider, see also
     // https://www.drupal.org/project/drupal/issues/3154413.

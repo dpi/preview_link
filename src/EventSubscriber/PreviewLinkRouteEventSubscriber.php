@@ -102,7 +102,7 @@ class PreviewLinkRouteEventSubscriber implements EventSubscriberInterface {
       ]));
 
       // 307: temporary.
-      $response = (new TrustedRedirectResponse($previewLinkUrl->toString(), 307))
+      $response = (new TrustedRedirectResponse($previewLinkUrl->toString(), TrustedRedirectResponse::HTTP_TEMPORARY_REDIRECT))
         ->addCacheableDependency($exception);
       $event->setResponse($response);
       $event->stopPropagation();
