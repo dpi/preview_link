@@ -80,7 +80,7 @@ class PreviewLinkCanonicalRerouteAccessCheck implements AccessInterface {
     $routeMatch = $this->routeMatch->getMasterRouteMatch();
     $route = $routeMatch->getRouteObject();
 
-    $entityParameterName = $route->getRequirement('_access_preview_link_canonical_rerouter');
+    $entityParameterName = $route ? $route->getRequirement('_access_preview_link_canonical_rerouter') : NULL;
     if (!isset($entityParameterName)) {
       // If the requirement doesnt exist then the master request isn't the
       // canonical route, its probably simulated from something like menu or
