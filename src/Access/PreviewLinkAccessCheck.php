@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\preview_link\Access;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\preview_link\PreviewLinkHostInterface;
@@ -42,7 +43,7 @@ class PreviewLinkAccessCheck implements AccessInterface {
    * @return \Drupal\Core\Access\AccessResult
    *   A \Drupal\Core\Access\AccessInterface value.
    */
-  public function access(EntityInterface $entity = NULL, $preview_token = NULL) {
+  public function access(EntityInterface $entity = NULL, string $preview_token = NULL): AccessResultInterface {
     $neutral = AccessResult::neutral()
       ->addCacheableDependency($entity)
       ->addCacheContexts(['preview_link_route']);

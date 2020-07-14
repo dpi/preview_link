@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\preview_link\Access;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
@@ -31,7 +34,7 @@ class PreviewEnabledAccessCheck implements AccessInterface {
   /**
    * Checks access to both the generate route and the preview route.
    */
-  public function access(Route $route, RouteMatchInterface $route_match) {
+  public function access(Route $route, RouteMatchInterface $route_match): AccessResultInterface {
     // Get the entity for both the preview route and the generate preview link
     // route.
     if ($entity_type_id = $route->getOption('preview_link.entity_type_id')) {
@@ -56,7 +59,7 @@ class PreviewEnabledAccessCheck implements AccessInterface {
    * @return bool
    *   TRUE if enabled, FALSE otherwise.
    */
-  protected function entityTypeAndBundleEnabled(EntityInterface $entity) {
+  protected function entityTypeAndBundleEnabled(EntityInterface $entity): bool {
     $enabled_entity_types = $this->config->get('enabled_entity_types');
 
     // If no entity types are specified, fallback to allowing all.

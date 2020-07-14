@@ -36,7 +36,7 @@ class PreviewLinkSessionTokenUpdateTest extends UpdatePathTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setDatabaseDumpFiles(): void {
+  protected function setDatabaseDumpFiles() {
     $this->databaseDumpFiles = [
       DRUPAL_ROOT . '/core/modules/system/tests/fixtures/update/drupal-8.8.0.bare.standard.php.gz',
       __DIR__ . '/../../../../tests/fixtures/update/preview-link-multi-3155009.php',

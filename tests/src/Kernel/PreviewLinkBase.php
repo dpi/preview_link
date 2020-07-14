@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\Tests\preview_link\Kernel;
 
 use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;

@@ -8,7 +8,7 @@ use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTestMulRevPub;
 use Drupal\entity_test\Entity\EntityTestRevPub;
 use Drupal\preview_link\Entity\PreviewLink;
-use Drupal\preview_link_test\TimeMachine;
+use Drupal\preview_link_test_time\TimeMachine;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 
@@ -50,7 +50,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
   /**
    * Tests session token unlocks multiple entities.
    */
-  public function testSessionToken() {
+  public function testSessionToken(): void {
     $entity1 = EntityTestRevPub::create();
     $entity1->save();
     $entity2 = EntityTestRevPub::create();
@@ -104,7 +104,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
    * Tests that trying to re-claim a preview token doesnt return a cached
    * response which doesnt end up claiming a token to the session.
    */
-  public function testSessionTokenReclaimAttempt() {
+  public function testSessionTokenReclaimAttempt(): void {
     $entity = EntityTestRevPub::create();
     $entity->save();
 
@@ -144,7 +144,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
    *
    * For when user has access to canonical route, without the token.
    */
-  public function testSessionTokenUnclaimDestination() {
+  public function testSessionTokenUnclaimDestination(): void {
     user_role_change_permissions(RoleInterface::ANONYMOUS_ID, [
       'view test entity' => TRUE,
     ]);

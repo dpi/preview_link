@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\preview_link\Routing;
 
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -40,7 +42,7 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
    * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
-  protected function getGeneratePreviewLinkRoute(EntityTypeInterface $entity_type) {
+  protected function getGeneratePreviewLinkRoute(EntityTypeInterface $entity_type): ?Route {
     $entity_type_id = $entity_type->id();
     $route = new Route($entity_type->getLinkTemplate('preview-link-generate'));
 
@@ -68,7 +70,7 @@ class PreviewLinkRouteProvider implements EntityRouteProviderInterface {
    * @return \Symfony\Component\Routing\Route|null
    *   The generated route, if available.
    */
-  protected function getPreviewLinkRoute(EntityTypeInterface $entity_type) {
+  protected function getPreviewLinkRoute(EntityTypeInterface $entity_type): ?Route {
     $entity_type_id = $entity_type->id();
     $route = new Route('/preview-link/' . $entity_type_id . '/{' . $entity_type_id . '}/{preview_token}');
 

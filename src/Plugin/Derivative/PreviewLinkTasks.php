@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\preview_link\Plugin\Derivative;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
@@ -42,7 +44,7 @@ class PreviewLinkTasks extends DeriverBase implements ContainerDeriverInterface 
    * @param \Drupal\Core\StringTranslation\TranslationInterface $string_translation
    *   The translation manager.
    */
-  public function __construct($base_plugin_id, EntityTypeManagerInterface $entity_type_manager, TranslationInterface $string_translation) {
+  public function __construct(string $base_plugin_id, EntityTypeManagerInterface $entity_type_manager, TranslationInterface $string_translation) {
     $this->entityTypeManager = $entity_type_manager;
     $this->stringTranslation = $string_translation;
     $this->basePluginId = $base_plugin_id;
@@ -55,7 +57,7 @@ class PreviewLinkTasks extends DeriverBase implements ContainerDeriverInterface 
     return new static(
       $base_plugin_id,
       $container->get('entity_type.manager'),
-      $container->get('string_translation')
+      $container->get('string_translation'),
     );
   }
 
@@ -89,7 +91,7 @@ class PreviewLinkTasks extends DeriverBase implements ContainerDeriverInterface 
    * @return bool
    *   TRUE if it supports previews otherwise FALSE.
    */
-  protected function supportsPreviewLink(EntityTypeInterface $entityType) {
+  protected function supportsPreviewLink(EntityTypeInterface $entityType): bool {
     return PreviewLinkUtility::isEntityTypeSupported($entityType);
   }
 

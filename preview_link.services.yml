@@ -25,7 +25,7 @@ services:
     tags:
       - { name: cache.context }
   preview_link.link_expiry:
-    class: Drupal\preview_link\LinkExpiry
+    class: Drupal\preview_link\PreviewLinkExpiry
     arguments: ['@state']
   preview_link.host:
     class: Drupal\preview_link\PreviewLinkHost

@@ -69,7 +69,7 @@ class PreviewLinkRouteEventSubscriber implements EventSubscriberInterface {
    * @param \Symfony\Component\HttpKernel\Event\ExceptionEvent $event
    *   The exception event.
    */
-  public function onException(ExceptionEvent $event) {
+  public function onException(ExceptionEvent $event): void {
     $exception = $event->getThrowable();
     if ($exception instanceof PreviewLinkRerouteException) {
       $entity = $exception->getEntity();
@@ -112,7 +112,7 @@ class PreviewLinkRouteEventSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     $events[KernelEvents::EXCEPTION] = 'onException';
     return $events;
   }

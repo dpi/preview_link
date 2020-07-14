@@ -69,7 +69,7 @@ final class PreviewLinkEntitiesWidget extends DynamicEntityReferenceWidget {
       $configuration['field_definition'],
       $configuration['settings'],
       $configuration['third_party_settings'],
-      $container->get('current_route_match')
+      $container->get('current_route_match'),
     );
   }
 

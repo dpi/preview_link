@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\preview_link;
 
 use Drupal\Component\Datetime\TimeInterface;
@@ -28,7 +30,7 @@ class PreviewLinkHooks implements ContainerInjectionInterface {
   /**
    * Calculates link expiry time.
    *
-   * @var \Drupal\preview_link\LinkExpiry
+   * @var \Drupal\preview_link\PreviewLinkExpiry
    */
   protected $linkExpiry;
 
@@ -39,10 +41,10 @@ class PreviewLinkHooks implements ContainerInjectionInterface {
    *   Preview link storage.
    * @param \Drupal\Component\Datetime\TimeInterface $time
    *   Time service.
-   * @param \Drupal\preview_link\LinkExpiry $linkExpiry
+   * @param \Drupal\preview_link\PreviewLinkExpiry $linkExpiry
    *   Calculates link expiry time.
    */
-  public function __construct(PreviewLinkStorageInterface $previewLinkStorage, TimeInterface $time, LinkExpiry $linkExpiry) {
+  public function __construct(PreviewLinkStorageInterface $previewLinkStorage, TimeInterface $time, PreviewLinkExpiry $linkExpiry) {
     $this->previewLinkStorage = $previewLinkStorage;
     $this->time = $time;
     $this->linkExpiry = $linkExpiry;
@@ -55,7 +57,7 @@ class PreviewLinkHooks implements ContainerInjectionInterface {
     return new static(
       $container->get('entity_type.manager')->getStorage('preview_link'),
       $container->get('datetime.time'),
-      $container->get('preview_link.link_expiry')
+      $container->get('preview_link.link_expiry'),
     );
   }
 
@@ -64,7 +66,7 @@ class PreviewLinkHooks implements ContainerInjectionInterface {
    *
    * @see \preview_link_cron()
    */
-  public function cron() {
+  public function cron(): void {
     $expireBeforeTime = $this->time->getRequestTime() - $this->linkExpiry->getLifetime();
     $ids = $this->previewLinkStorage->getQuery()
       ->condition('generated_timestamp', $expireBeforeTime, '<')

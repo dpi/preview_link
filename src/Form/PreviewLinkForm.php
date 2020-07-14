@@ -15,7 +15,7 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
 use Drupal\preview_link\Entity\PreviewLink;
-use Drupal\preview_link\LinkExpiry;
+use Drupal\preview_link\PreviewLinkExpiry;
 use Drupal\preview_link\PreviewLinkHostInterface;
 use Drupal\preview_link\PreviewLinkStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -37,7 +37,7 @@ class PreviewLinkForm extends ContentEntityForm {
   /**
    * Calculates link expiry time.
    *
-   * @var \Drupal\preview_link\LinkExpiry
+   * @var \Drupal\preview_link\PreviewLinkExpiry
    */
   protected $linkExpiry;
 
@@ -59,14 +59,14 @@ class PreviewLinkForm extends ContentEntityForm {
    *   The time service.
    * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
    *   The date formatter service.
-   * @param \Drupal\preview_link\LinkExpiry $link_expiry
+   * @param \Drupal\preview_link\PreviewLinkExpiry $link_expiry
    *   Calculates link expiry time.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
    * @param \Drupal\preview_link\PreviewLinkHostInterface $previewLinkHost
    *   Preview link host service.
    */
-  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info, TimeInterface $time, DateFormatterInterface $date_formatter, LinkExpiry $link_expiry, MessengerInterface $messenger, PreviewLinkHostInterface $previewLinkHost) {
+  public function __construct(EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info, TimeInterface $time, DateFormatterInterface $date_formatter, PreviewLinkExpiry $link_expiry, MessengerInterface $messenger, PreviewLinkHostInterface $previewLinkHost) {
     parent::__construct($entity_repository, $entity_type_bundle_info, $time);
     $this->dateFormatter = $date_formatter;
     $this->linkExpiry = $link_expiry;
@@ -85,7 +85,7 @@ class PreviewLinkForm extends ContentEntityForm {
       $container->get('date.formatter'),
       $container->get('preview_link.link_expiry'),
       $container->get('messenger'),
-      $container->get('preview_link.host')
+      $container->get('preview_link.host'),
     );
   }
 
@@ -187,9 +187,14 @@ class PreviewLinkForm extends ContentEntityForm {
   }
 
   /**
-   * {@inheritdoc}
+   * Regenerates preview link token.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
    */
-  public function regenerateToken(array &$form, FormStateInterface $form_state) {
+  public function regenerateToken(array &$form, FormStateInterface $form_state): void {
     $this->entity->regenerateToken(TRUE);
     $this->messenger()->addMessage($this->t('The token has been regenerated.'));
   }
@@ -202,7 +207,7 @@ class PreviewLinkForm extends ContentEntityForm {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    */
-  public function resetLifetime(array &$form, FormStateInterface $form_state) {
+  public function resetLifetime(array &$form, FormStateInterface $form_state): void {
     $now = $this->time->getRequestTime();
     $this->entity->generated_timestamp = $now;
     $newExpiry = $now + $this->linkExpiry->getLifetime();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\preview_link;
 
 use Drupal\Core\State\StateInterface;
@@ -7,7 +9,7 @@ use Drupal\Core\State\StateInterface;
 /**
  * Calculates link expiry time.
  */
-class LinkExpiry {
+class PreviewLinkExpiry {
 
   /**
    * Default expiry time in days.
@@ -39,7 +41,7 @@ class LinkExpiry {
    * @return int
    *   Preview link in seconds.
    */
-  public function getLifetime() {
+  public function getLifetime(): int {
     $days = $this->state->get('preview_link_expiry_days', static::DEFAULT_EXPIRY_DAYS);
     return $days * 86400;
   }

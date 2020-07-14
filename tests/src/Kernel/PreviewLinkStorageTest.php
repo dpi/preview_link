@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\Tests\preview_link\Kernel;
 
 use Drupal\preview_link\Entity\PreviewLink;
@@ -50,7 +52,7 @@ class PreviewLinkStorageTest extends PreviewLinkBase {
   /**
    * Ensure preview link creation works.
    */
-  public function testCreatePreviewLink() {
+  public function testCreatePreviewLink(): void {
     $preview_link = PreviewLink::create()->addEntity($this->node);
     $this->assertIsString($preview_link->getToken());
 
@@ -62,7 +64,7 @@ class PreviewLinkStorageTest extends PreviewLinkBase {
   /**
    * Ensure we can re-generate a token.
    */
-  public function testRegenerateToken() {
+  public function testRegenerateToken(): void {
     $preview_link = PreviewLink::create()->addEntity($this->node);
     $preview_link->save();
     $current_token = $preview_link->getToken();

@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\preview_link\Access;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
@@ -71,7 +72,7 @@ class PreviewLinkCanonicalRerouteAccessCheck implements AccessInterface {
    * @throws \Drupal\preview_link\Exception\PreviewLinkRerouteException
    *   When a claimed token grants access to entity for this route match.
    */
-  public function access(Request $request = NULL) {
+  public function access(Request $request = NULL): AccessResultInterface {
     $cacheability = (new CacheableMetadata())
       ->addCacheContexts(['session', 'route']);
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\Tests\preview_link\Kernel;
 
 use Drupal\preview_link\Entity\PreviewLink;
@@ -49,7 +51,7 @@ class PreviewLinkExpiryTest extends PreviewLinkBase {
   /**
    * Test preview links are automatically expired on cron.
    */
-  public function testPreviewLinkExpires() {
+  public function testPreviewLinkExpires(): void {
     $days = \Drupal::state()->get('preview_link_expiry_days', 7);
     // Add an extra day to make it expired.
     $days = $days + 1;
