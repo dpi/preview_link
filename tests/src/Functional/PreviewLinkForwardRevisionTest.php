@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\Tests\preview_link\Functional;
 
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
@@ -56,7 +58,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
   /**
    * Test the latest forward revision is loaded.
    */
-  public function testForwardRevision() {
+  public function testForwardRevision(): void {
     $original_random_text = 'Original Title';
     $latest_random_text = 'Latest Title';
 
@@ -89,7 +91,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
   /**
    * Tests draft revision with paragraph field.
    */
-  public function testDraftRevisionWithParagraphField() {
+  public function testDraftRevisionWithParagraphField(): void {
     $this->setupParagraphTypeAndField();
 
     // Create a paragraph.
@@ -129,7 +131,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
   /**
    * Sets up paragraph type and field.
    */
-  protected function setupParagraphTypeAndField() {
+  protected function setupParagraphTypeAndField(): void {
     // Add a paragraph type.
     $paragraph_type = ParagraphsType::create([
       'id' => 'section',

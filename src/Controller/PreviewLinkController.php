@@ -58,7 +58,7 @@ class PreviewLinkController extends ControllerBase {
    * @return array
    *   A render array for previewing the entity.
    */
-  public function preview(RouteMatchInterface $routeMatch, string $preview_token) {
+  public function preview(RouteMatchInterface $routeMatch, string $preview_token): array {
     // Accessing the controller will bind the Preview Link token to the session.
     $this->claimToken($preview_token);
     $entity = $this->resolveEntity($routeMatch);
@@ -77,10 +77,10 @@ class PreviewLinkController extends ControllerBase {
    * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
    *   The current route match.
    *
-   * @return string
+   * @return string|null
    *   The title of the entity.
    */
-  public function title(RouteMatchInterface $routeMatch) {
+  public function title(RouteMatchInterface $routeMatch): ?string {
     return $this->resolveEntity($routeMatch)->label();
   }
 

@@ -9,7 +9,6 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -20,7 +19,7 @@ use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
 /**
  * Implements hook_entity_type_alter().
  */
-function preview_link_entity_type_alter(array &$entity_types) {
+function preview_link_entity_type_alter(array &$entity_types): void {
   $supported_entity_types = array_filter($entity_types, [PreviewLinkUtility::class, 'isEntityTypeSupported']);
 
   /** @var \Drupal\Core\Entity\ContentEntityType $type */
@@ -32,7 +31,7 @@ function preview_link_entity_type_alter(array &$entity_types) {
     }
 
     if (!$type->hasLinkTemplate('preview-link-generate')) {
-      $type->setLinkTemplate('preview-link-generate',  $type->getLinkTemplate('canonical') . '/generate-preview-link');
+      $type->setLinkTemplate('preview-link-generate', $type->getLinkTemplate('canonical') . '/generate-preview-link');
     }
   }
 }
@@ -40,14 +39,14 @@ function preview_link_entity_type_alter(array &$entity_types) {
 /**
  * Implements hook_cron().
  */
-function preview_link_cron() {
+function preview_link_cron(): void {
   \Drupal::classResolver(PreviewLinkHooks::class)->cron();
 }
 
 /**
  * Implements hook_theme().
  */
-function preview_link_theme($existing, $type, $theme, $path) {
+function preview_link_theme(array $existing, string $type, string $theme, string $path) : array {
   return [
     'preview_link' => [
       'path' => $path . '/templates',
@@ -65,7 +64,7 @@ function preview_link_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_entity_access().
  */
-function preview_link_entity_access(EntityInterface $entity, $operation, AccountInterface $account) {
+function preview_link_entity_access(EntityInterface $entity, string $operation, AccountInterface $account): AccessResultInterface {
   $neutral = AccessResult::neutral()
     ->addCacheableDependency($entity)
     ->addCacheContexts(['preview_link_route']);

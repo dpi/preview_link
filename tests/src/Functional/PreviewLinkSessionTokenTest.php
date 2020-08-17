@@ -5,9 +5,10 @@ declare(strict_types = 1);
 namespace Drupal\Tests\preview_link\Functional;
 
 use Drupal\Core\Url;
+use Drupal\entity_test\Entity\EntityTestMulRevPub;
 use Drupal\entity_test\Entity\EntityTestRevPub;
 use Drupal\preview_link\Entity\PreviewLink;
-use Drupal\preview_link_test\TimeMachine;
+use Drupal\preview_link_test_time\TimeMachine;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\RoleInterface;
 
@@ -32,6 +33,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
     'entity_test',
     'preview_link_test',
     'preview_link_test_time',
+    'block',
   ];
 
   /**
@@ -48,7 +50,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
   /**
    * Tests session token unlocks multiple entities.
    */
-  public function testSessionToken() {
+  public function testSessionToken(): void {
     $entity1 = EntityTestRevPub::create();
     $entity1->save();
     $entity2 = EntityTestRevPub::create();
@@ -102,7 +104,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
    * Tests that trying to re-claim a preview token doesnt return a cached
    * response which doesnt end up claiming a token to the session.
    */
-  public function testSessionTokenReclaimAttempt() {
+  public function testSessionTokenReclaimAttempt(): void {
     $entity = EntityTestRevPub::create();
     $entity->save();
 
@@ -142,7 +144,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
    *
    * For when user has access to canonical route, without the token.
    */
-  public function testSessionTokenUnclaimDestination() {
+  public function testSessionTokenUnclaimDestination(): void {
     user_role_change_permissions(RoleInterface::ANONYMOUS_ID, [
       'view test entity' => TRUE,
     ]);
@@ -211,6 +213,42 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
 
     $this->drupalGet($otherEntity->toUrl());
     $this->assertSession()->statusCodeEquals(200);
+  }
+
+  /**
+   * Test simulating route access doesnt result in a Preview Link redirection.
+   *
+   * Ensures a user rendering a page which also simulates an access check to the
+   * canonical route doesnt get redirected to the Preview Link route.
+   * For example on the entity edit form, the breadcrumb will simulate
+   * the request on the canonical route because it renders a link to canonical.
+   */
+  public function testRouteSimulateNoRedirect(): void {
+    $this->drupalPlaceBlock('system_breadcrumb_block');
+
+    $this->drupalLogin($this->createUser([
+      'view test entity',
+      'administer entity_test content',
+    ]));
+
+    // Must be accessible.
+    $claimedEntity = EntityTestMulRevPub::create();
+    $claimedEntity->save();
+
+    $previewLink = PreviewLink::create()->addEntity($claimedEntity);
+    $previewLink->save();
+
+    // Claim the token to the session.
+    $previewLinkUrl = Url::fromRoute('entity.entity_test_mulrevpub.preview_link', [
+      $claimedEntity->getEntityTypeId() => $claimedEntity->id(),
+      'preview_token' => $previewLink->getToken(),
+    ]);
+    $this->drupalGet($previewLinkUrl);
+    $this->assertSession()->statusCodeEquals(200);
+
+    $editUrl = $claimedEntity->toUrl('edit-form');
+    $this->drupalGet($editUrl);
+    $this->assertSession()->addressEquals($editUrl->toString());
   }
 
 }

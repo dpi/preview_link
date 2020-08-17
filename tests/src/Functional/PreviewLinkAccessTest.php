@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\Tests\preview_link\Functional;
 
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -8,6 +10,7 @@ use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\preview_link\Entity\PreviewLink;
+use Drupal\preview_link\Entity\PreviewLinkInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\entity_test\Entity\EntityTestRev;
 
@@ -35,7 +38,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
   /**
    * Test access with tokens.
    */
-  public function testPreviewFakeToken() {
+  public function testPreviewFakeToken(): void {
     $account = $this->createUser([
       'view test entity',
     ]);
@@ -68,7 +71,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
   /**
    * Ensure access is allowed with a real token.
    */
-  public function testPreviewRealToken() {
+  public function testPreviewRealToken(): void {
     $account = $this->createUser([
       'view test entity',
     ]);
@@ -96,7 +99,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
   /**
    * Test the preview link routes based on the settings.
    */
-  public function testPreviewLinkEnabledEntityTypesConfiguration() {
+  public function testPreviewLinkEnabledEntityTypesConfiguration(): void {
     $config = $this->config('preview_link.settings');
 
     $account = $this->createUser([
@@ -230,7 +233,7 @@ class PreviewLinkAccessTest extends BrowserTestBase {
    * @return \Drupal\preview_link\Entity\PreviewLinkInterface|null
    *   The preview link, or null if no preview link generated.
    */
-  protected function getNewPreviewLinkForEntity(ContentEntityInterface $entity) {
+  protected function getNewPreviewLinkForEntity(ContentEntityInterface $entity): ?PreviewLinkInterface {
     $previewLink = PreviewLink::create()->addEntity($entity);
     $previewLink->save();
     return $previewLink;

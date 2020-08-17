@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\Tests\preview_link\Kernel;
 
 use Drupal\preview_link\Entity\PreviewLink;
@@ -60,7 +62,7 @@ class PreviewLinkAccessTest extends PreviewLinkBase {
    *
    * @dataProvider previewAccessDeniedDataProvider
    */
-  public function testPreviewAccessDenied($entity_type_id, $entity_id, $token, $expected_result) {
+  public function testPreviewAccessDenied($entity_type_id, $entity_id, $token, $expected_result): void {
     $entity = $this->container->get('entity_type.manager')->getStorage($entity_type_id)->load($entity_id);
     $access = $this->container->get('access_check.preview_link')->access($entity, $token);
     $this->assertEquals($expected_result, $access->isAllowed());
@@ -69,7 +71,7 @@ class PreviewLinkAccessTest extends PreviewLinkBase {
   /**
    * Data provider for testPreviewAccess().
    */
-  public function previewAccessDeniedDataProvider() {
+  public function previewAccessDeniedDataProvider(): array {
     return [
       'empty token' => ['node', 1, '', FALSE],
       'invalid token' => ['node', 1, 'invalid 123', FALSE],
@@ -80,7 +82,7 @@ class PreviewLinkAccessTest extends PreviewLinkBase {
   /**
    * Ensure access is allowed with a valid token.
    */
-  public function testPreviewAccessAllowed() {
+  public function testPreviewAccessAllowed(): void {
     $access = $this->container->get('access_check.preview_link')->access($this->node, $this->previewLink->getToken());
     $this->assertEquals(TRUE, $access->isAllowed());
   }

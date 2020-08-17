@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\preview_link\Entity;
 
 use Drupal\Component\Assertion\Inspector;
@@ -24,10 +26,7 @@ use Drupal\Core\Url;
  *     }
  *   },
  *   entity_keys = {
- *     "id" = "id",
- *     "token" = "token",
- *     "entity_id" = "entity_id",
- *     "entity_type_id" = "entity_type_id"
+ *     "id" = "id"
  *   }
  * )
  */
@@ -53,7 +52,7 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
   /**
    * {@inheritdoc}
    */
-  public function getToken() {
+  public function getToken(): string {
     return $this->get('token')->value;
   }
 
@@ -70,7 +69,7 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
   /**
    * {@inheritdoc}
    */
-  public function regenerateToken($needs_new_token = FALSE) {
+  public function regenerateToken($needs_new_token = FALSE): bool {
     $current_value = $this->needsNewToken;
     $this->needsNewToken = $needs_new_token;
     return $current_value;
@@ -79,8 +78,8 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
   /**
    * {@inheritdoc}
    */
-  public function getGeneratedTimestamp() {
-    return $this->get('generated_timestamp')->value;
+  public function getGeneratedTimestamp(): int {
+    return (int) $this->get('generated_timestamp')->value;
   }
 
   /**

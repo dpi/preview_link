@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\Tests\preview_link\Functional;
 
 use Drupal\entity_test\Entity\EntityTestRevPub;
@@ -66,7 +68,7 @@ class PreviewLinkTest extends BrowserTestBase {
       ])
       ->save();
 
-    /** @var \Drupal\preview_link_test\TimeMachine $timeMachine */
+    /** @var \Drupal\preview_link_test_time\TimeMachine $timeMachine */
     $timeMachine = \Drupal::service('datetime.time');
     $currentTime = new \DateTime('14 May 2012 15:00:00');
     $timeMachine->setTime($currentTime);
@@ -75,8 +77,8 @@ class PreviewLinkTest extends BrowserTestBase {
   /**
    * Test the preview link page.
    */
-  public function testPreviewLinkPage() {
-    /** @var \Drupal\preview_link_test\TimeMachine $timeMachine */
+  public function testPreviewLinkPage(): void {
+    /** @var \Drupal\preview_link_test_time\TimeMachine $timeMachine */
     $timeMachine = \Drupal::service('datetime.time');
     $timeMachine->setTime(new \DateTime('14 May 2014 14:00:00'));
 
@@ -122,8 +124,8 @@ class PreviewLinkTest extends BrowserTestBase {
   /**
    * Test preview link reset.
    */
-  public function testReset() {
-    /** @var \Drupal\preview_link_test\TimeMachine $timeMachine */
+  public function testReset(): void {
+    /** @var \Drupal\preview_link_test_time\TimeMachine $timeMachine */
     $timeMachine = \Drupal::service('datetime.time');
     $currentTime = new \DateTime('14 May 2014 14:00:00');
     $timeMachine->setTime($currentTime);
@@ -156,7 +158,7 @@ class PreviewLinkTest extends BrowserTestBase {
   /**
    * Tests managing entities for a Preview Link.
    */
-  public function testEntities() {
+  public function testEntities(): void {
     $this->drupalLogin($this->createUser([
       'generate preview links',
       'view test entity',
@@ -203,7 +205,7 @@ class PreviewLinkTest extends BrowserTestBase {
   /**
    * Tests unique entities for Preview Link.
    */
-  public function testEntitiesUniqueConstraint() {
+  public function testEntitiesUniqueConstraint(): void {
     $this->drupalLogin($this->createUser([
       'generate preview links',
       'view test entity',
@@ -226,7 +228,7 @@ class PreviewLinkTest extends BrowserTestBase {
   /**
    * Tests managing entities not possible when config is off.
    */
-  public function testEntitiesInaccessible() {
+  public function testEntitiesInaccessible(): void {
     \Drupal::configFactory()->getEditable('preview_link.settings')
       ->set('multiple_entities', FALSE)
       ->save(TRUE);

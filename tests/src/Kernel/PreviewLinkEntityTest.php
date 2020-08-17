@@ -29,7 +29,7 @@ class PreviewLinkEntityTest extends PreviewLinkBase {
    *
    * @covers ::getEntities
    */
-  public function testGetEntities() {
+  public function testGetEntities(): void {
     $previewLink = PreviewLink::create();
     $entity = EntityTestRevPub::create();
     $previewLink->entities = [$entity];
@@ -41,12 +41,13 @@ class PreviewLinkEntityTest extends PreviewLinkBase {
    *
    * @covers ::setEntities
    */
-  public function testSetEntities() {
+  public function testSetEntities(): void {
     $previewLink = PreviewLink::create();
     $entity = EntityTestRevPub::create();
-    $previewLink->entities = [$entity];
+    $previewLink->setEntities([$entity]);
     $this->assertCount(1, $previewLink->entities->referencedEntities());
     $previewLink->setEntities([$entity]);
+    // Using setter should override previous values, therefore count is same.
     $this->assertCount(1, $previewLink->entities->referencedEntities());
   }
 
@@ -55,7 +56,7 @@ class PreviewLinkEntityTest extends PreviewLinkBase {
    *
    * @covers ::addEntity
    */
-  public function testAddEntity() {
+  public function testAddEntity(): void {
     $previewLink = PreviewLink::create();
     $entity = EntityTestRevPub::create();
     $this->assertCount(0, $previewLink->entities->referencedEntities());
@@ -64,10 +65,11 @@ class PreviewLinkEntityTest extends PreviewLinkBase {
   }
 
   /**
+   * Test default settings.
    *
    * @covers ::entitiesDefaultFieldSettings
    */
-  public function testDefaultSettings() {
+  public function testDefaultSettings(): void {
     $definition = \Drupal::entityTypeManager()->getDefinition('preview_link');
     $baseFields = PreviewLink::baseFieldDefinitions($definition);
     $settings = $baseFields['entities']->getSettings();

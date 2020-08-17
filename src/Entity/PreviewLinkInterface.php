@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\preview_link\Entity;
 
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -28,7 +30,7 @@ interface PreviewLinkInterface extends ContentEntityInterface {
    * @return string
    *   The token.
    */
-  public function getToken();
+  public function getToken(): string;
 
   /**
    * Set the new token.
@@ -39,7 +41,7 @@ interface PreviewLinkInterface extends ContentEntityInterface {
    * @return \Drupal\preview_link\Entity\PreviewLinkInterface
    *   Returns the preview link for chaining.
    */
-  public function setToken($token);
+  public function setToken(string $token);
 
   /**
    * Mark the entity needing a new token. Only updated upon save.
@@ -50,7 +52,7 @@ interface PreviewLinkInterface extends ContentEntityInterface {
    * @return bool
    *   TRUE if it was currently marked to generate otherwise FALSE.
    */
-  public function regenerateToken($needs_new_token = FALSE);
+  public function regenerateToken($needs_new_token = FALSE): bool;
 
   /**
    * Gets the timestamp stamp of when the token was generated.
@@ -58,7 +60,7 @@ interface PreviewLinkInterface extends ContentEntityInterface {
    * @return int
    *   The timestamp.
    */
-  public function getGeneratedTimestamp();
+  public function getGeneratedTimestamp(): int;
 
   /**
    * Get entities this preview link unlocks.

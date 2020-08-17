@@ -37,7 +37,7 @@ class PreviewLinkRoutes extends RouteSubscriberBase {
   /**
    * {@inheritdoc}
    */
-  protected function alterRoutes(RouteCollection $collection) {
+  protected function alterRoutes(RouteCollection $collection): void {
     $entityTypes = $this->entityTypeManager->getDefinitions();
     $entityTypes = array_filter($entityTypes, [PreviewLinkUtility::class, 'isEntityTypeSupported']);
     foreach ($entityTypes as $entityType) {

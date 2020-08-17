@@ -75,7 +75,7 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
       $container->get('entity_type.bundle.info'),
       $container->get('entity_type.manager'),
       $container->get('uuid'),
-      $container->get('datetime.time')
+      $container->get('datetime.time'),
     );
   }
 
@@ -110,7 +110,7 @@ class PreviewLinkStorage extends SqlContentEntityStorage implements PreviewLinkS
    * @return string
    *   A unique identifier for this preview link.
    */
-  protected function generateUniqueToken() {
+  protected function generateUniqueToken(): string {
     return $this->uuidService->generate();
   }
 

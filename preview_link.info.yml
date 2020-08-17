@@ -2,6 +2,7 @@ name: Preview Link
 type: module
 description: Allows anyone to preview unpublished content with a unique link.
 core_version_requirement: ^8.7.7 || ^9
+php: 7.3
 package: Preview
 dependencies:
   - dynamic_entity_reference:dynamic_entity_reference
