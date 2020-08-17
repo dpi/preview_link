@@ -7,11 +7,11 @@
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\preview_link\PreviewLinkEntityHooks;
 use Drupal\preview_link\PreviewLinkHooks;
 use Drupal\preview_link\PreviewLinkUtility;
 use Drupal\preview_link\Routing\PreviewLinkRouteProvider;
@@ -65,13 +65,8 @@ function preview_link_theme(array $existing, string $type, string $theme, string
  * Implements hook_entity_access().
  */
 function preview_link_entity_access(EntityInterface $entity, string $operation, AccountInterface $account): AccessResultInterface {
-  $neutral = AccessResult::neutral()
-    ->addCacheableDependency($entity)
-    ->addCacheContexts(['preview_link_route']);
-  if ($operation !== 'view' || !($entity instanceof ContentEntityInterface)) {
-    return $neutral;
-  }
-  return \Drupal::service('access_check.preview_link')->access($entity, \Drupal::routeMatch()->getParameter('preview_token'));
+  return \Drupal::classResolver(PreviewLinkEntityHooks::class)
+    ->entityAccess($entity, $operation, $account);
 }
 
 /**

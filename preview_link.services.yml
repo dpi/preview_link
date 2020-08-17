@@ -30,9 +30,14 @@ services:
   preview_link.host:
     class: Drupal\preview_link\PreviewLinkHost
     arguments: ['@entity_type.manager']
+  preview_link.message:
+    class: Drupal\preview_link\PreviewLinkMessage
+    arguments: ['@string_translation', '@current_user']
+  preview_link.hook_helper:
+    class: Drupal\preview_link\PreviewLinkHookHelper
   preview_link.preview_link_rerouter:
     class: Drupal\preview_link\EventSubscriber\PreviewLinkRouteEventSubscriber
-    arguments: ['@messenger', '@redirect.destination', '@string_translation', '@current_user']
+    arguments: ['@messenger', '@redirect.destination', '@config.factory', '@preview_link.message']
     tags:
       - { name: event_subscriber }
   preview_link.route_subscriber:
