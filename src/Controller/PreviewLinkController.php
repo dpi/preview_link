@@ -105,7 +105,11 @@ class PreviewLinkController extends ControllerBase {
       // Temporarily disable so we can get whether the canonical route is really
       // accessible.
       $this->hookHelper->setPreviewLinkGrantingAccess(FALSE);
+
       $this->messenger()->addMessage($this->previewLinkMessages->getGrantMessage($entity->toUrl()));
+
+      $this->entityTypeManager->getAccessControlHandler($entity->getEntityTypeId())->resetCache();
+      $this->hookHelper->setPreviewLinkGrantingAccess(TRUE);
     }
 
     $view = $this->entityTypeManager->getViewBuilder($entity->getEntityTypeId())->view($entity);
