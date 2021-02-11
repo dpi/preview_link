@@ -2,9 +2,12 @@
 
 namespace Drupal\preview_link\Entity;
 
+use Drupal\Component\Assertion\Inspector;
 use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Url;
 
 /**
@@ -40,10 +43,9 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
   /**
    * {@inheritdoc}
    */
-  public function getUrl() {
-    $entity_type_id = $this->entity_type_id->value;
-    return Url::fromRoute("entity.$entity_type_id.preview_link", [
-      $entity_type_id => $this->entity_id->value,
+  public function getUrl(EntityInterface $entity): Url {
+    return Url::fromRoute(sprintf('entity.%s.preview_link', $entity->getEntityTypeId()), [
+      $entity->getEntityTypeId() => $entity->id(),
       'preview_token' => $this->getToken(),
     ]);
   }
@@ -84,6 +86,32 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
   /**
    * {@inheritdoc}
    */
+  public function getEntities(): array {
+    $entities = $this->entities->referencedEntities();
+    assert(Inspector::assertAllObjects($entities, EntityInterface::class));
+    return $entities;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setEntities(array $entities) {
+    assert(Inspector::assertAllObjects($entities, EntityInterface::class));
+    $this->entities = $entities;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function addEntity(EntityInterface $entity) {
+    $this->entities[] = $entity;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
     $fields['token'] = BaseFieldDefinition::create('string')
@@ -91,15 +119,17 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
       ->setDescription(t('A token that allows any user to view a preview of this entity.'))
       ->setRequired(TRUE);
 
-    $fields['entity_id'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Entity Id'))
-      ->setDescription(t('The entity Id'))
-      ->setRequired(TRUE);
-
-    $fields['entity_type_id'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Entity Type Id'))
-      ->setDescription(t('The entity type Id'))
-      ->setRequired(TRUE);
+    $fields['entities'] = BaseFieldDefinition::create('dynamic_entity_reference')
+      ->setLabel(t('Entities'))
+      ->setDescription(t('The associated entities this preview link unlocks.'))
+      ->setRequired(TRUE)
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
+      ->addConstraint('PreviewLinkEntitiesUniqueConstraint', [])
+      ->setSettings(static::entitiesDefaultFieldSettings())
+      ->setDisplayOptions('form', [
+        'type' => 'preview_link_entities_widget',
+        'weight' => 10,
+      ]);
 
     $fields['generated_timestamp'] = BaseFieldDefinition::create('timestamp')
       ->setLabel(t('Generated Timestamp'))
@@ -107,6 +137,26 @@ class PreviewLink extends ContentEntityBase implements PreviewLinkInterface {
       ->setRequired(TRUE);
 
     return $fields;
+  }
+
+  /**
+   * Rewrites settings for 'entities' dynamic_entity_reference field.
+   *
+   * DynamicEntityReferenceItem::defaultFieldSettings doesnt receive any context
+   * so we need to change the default handlers manually.
+   */
+  public static function entitiesDefaultFieldSettings(): array {
+    $labels = \Drupal::service('entity_type.repository')->getEntityTypeLabels(TRUE);
+    $options = $labels[(string) t('Content', [], ['context' => 'Entity type group'])];
+    $settings = [
+      'exclude_entity_types' => TRUE,
+      'entity_type_ids' => [],
+    ];
+    $settings += array_fill_keys(array_keys($options), [
+      'handler' => 'preview_link',
+      'handler_settings' => [],
+    ]);
+    return $settings;
   }
 
 }

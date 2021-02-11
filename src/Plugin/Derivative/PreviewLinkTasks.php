@@ -8,6 +8,7 @@ use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\preview_link\PreviewLinkUtility;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -69,8 +70,8 @@ class PreviewLinkTasks extends DeriverBase implements ContainerDeriverInterface 
         continue;
       }
 
-      $this->derivatives["$entity_type_id.generate_preview_link"] = [
-        'route_name' => "entity.$entity_type_id.generate_preview_link",
+      $this->derivatives["$entity_type_id.preview_link_generate"] = [
+        'route_name' => "entity.$entity_type_id.preview_link_generate",
         'title' => $this->t('Preview Link'),
         'base_route' => "entity.$entity_type_id.canonical",
         'weight' => 30,
@@ -89,7 +90,7 @@ class PreviewLinkTasks extends DeriverBase implements ContainerDeriverInterface 
    *   TRUE if it supports previews otherwise FALSE.
    */
   protected function supportsPreviewLink(EntityTypeInterface $entityType) {
-    return $entityType->isRevisionable();
+    return PreviewLinkUtility::isEntityTypeSupported($entityType);
   }
 
 }

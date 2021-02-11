@@ -72,10 +72,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
     $node->save();
 
     // Create the preview link.
-    $previewLink = PreviewLink::create([
-      'entity_type_id' => 'node',
-      'entity_id' => $node->id(),
-    ]);
+    $previewLink = PreviewLink::create()->addEntity($node);
     $previewLink->save();
 
     // Visit the node and assert the original text.
@@ -84,7 +81,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
     $this->assertSession()->pageTextContains($original_random_text);
 
     // Visit the preview link and assert the forward revision text.
-    $this->drupalGet($previewLink->getUrl());
+    $this->drupalGet($previewLink->getUrl($node));
     $this->assertSession()->pageTextContains($latest_random_text);
     $this->assertSession()->pageTextNotContains($original_random_text);
   }
@@ -111,10 +108,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
     ]);
 
     // Create the preview link.
-    $previewLink = PreviewLink::create([
-      'entity_type_id' => 'node',
-      'entity_id' => $node->id(),
-    ]);
+    $previewLink = PreviewLink::create()->addEntity($node);
     $previewLink->save();
 
     // Login as user who can view unpublished content.
@@ -128,7 +122,7 @@ class PreviewLinkForwardRevisionTest extends BrowserTestBase {
     // Now visit preview link as anonymous, and verify paragraph content is
     // shown.
     $this->drupalLogout();
-    $this->drupalGet($previewLink->getUrl());
+    $this->drupalGet($previewLink->getUrl($node));
     $assert->pageTextContains('A section title');
   }
 

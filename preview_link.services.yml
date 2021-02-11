@@ -1,7 +1,12 @@
 services:
+  access_check.preview_link.canonical_rerouter:
+    class: Drupal\preview_link\Access\PreviewLinkCanonicalRerouteAccessCheck
+    arguments: ['@tempstore.private', '@preview_link.host']
+    tags:
+      - { name: access_check, applies_to: _access_preview_link_canonical_rerouter }
   access_check.preview_link:
     class: Drupal\preview_link\Access\PreviewLinkAccessCheck
-    arguments: ['@entity_type.manager']
+    arguments: ['@preview_link.host']
     tags:
       - { name: access_check, applies_to: _access_preview_link }
   access_check.preview_enabled:
@@ -9,6 +14,11 @@ services:
     arguments: ['@config.factory']
     tags:
       - { name: access_check, applies_to: _access_preview_enabled }
+  access_check.preview_link.session_exists:
+    class: Drupal\preview_link\Access\PreviewLinkSessionExistsAccessCheck
+    arguments: ['@session_configuration']
+    tags:
+      - { name: access_check, applies_to: _access_preview_session_exists }
   cache_context.preview_link_route:
     class: Drupal\preview_link\PreviewLinkCacheContext
     arguments: ['@current_route_match']
@@ -17,3 +27,16 @@ services:
   preview_link.link_expiry:
     class: Drupal\preview_link\LinkExpiry
     arguments: ['@state']
+  preview_link.host:
+    class: Drupal\preview_link\PreviewLinkHost
+    arguments: ['@entity_type.manager']
+  preview_link.preview_link_rerouter:
+    class: Drupal\preview_link\EventSubscriber\PreviewLinkRouteEventSubscriber
+    arguments: ['@messenger', '@redirect.destination', '@string_translation', '@current_user']
+    tags:
+      - { name: event_subscriber }
+  preview_link.route_subscriber:
+    class: Drupal\preview_link\Routing\PreviewLinkRoutes
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: event_subscriber }

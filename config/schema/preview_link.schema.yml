@@ -7,3 +7,6 @@ preview_link.settings:
         type: sequence
         sequence:
           type: string
+    multiple_entities:
+      label: Whether Preview Links can reference multiple entities.
+      type: boolean
