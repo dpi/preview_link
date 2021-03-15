@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\Tests\preview_link\Functional;
 
+use Drupal\Core\Logger\LogMessageParser;
 use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTestMulRevPub;
 use Drupal\entity_test\Entity\EntityTestRevPub;
@@ -27,7 +28,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'dynamic_entity_reference',
     'preview_link',
     'entity_test',
@@ -45,15 +46,19 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
     assert($timeMachine instanceof TimeMachine);
     $currentTime = new \DateTime('14 May 2014 14:00:00');
     $timeMachine->setTime($currentTime);
+
+    /** @var \Drupal\preview_link_test\StateLogger $logger */
+    $logger = \Drupal::service('logger.preview_link_test');
+    $logger->cleanLogs();
   }
 
   /**
    * Tests session token unlocks multiple entities.
    */
   public function testSessionToken(): void {
-    $entity1 = EntityTestRevPub::create();
+    $entity1 = EntityTestRevPub::create(['name' => 'test entity 1']);
     $entity1->save();
-    $entity2 = EntityTestRevPub::create();
+    $entity2 = EntityTestRevPub::create(['name' => 'test entity 2']);
     $entity2->save();
 
     // Navigating to these entities proves no access and primes caches.
@@ -96,6 +101,23 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
     $this->assertSession()->statusCodeEquals(403);
     $this->drupalGet($entity2->toUrl());
     $this->assertSession()->statusCodeEquals(403);
+
+    /** @var \Drupal\preview_link_test\StateLogger $logger */
+    $logger = \Drupal::service('logger.preview_link_test');
+    $messages = array_map(function ($log): string {
+      [1 => $message, 2 => $messagePlaceholders, 3 => $context] = $log;
+      return empty($messagePlaceholders) ? $message : strtr($message, $messagePlaceholders);
+    }, $logger->getLogs());
+    $channels = array_map(function ($log): ?string {
+      return $log[3]['channel'] ?? NULL;
+    }, $logger->getLogs());
+
+    $this->assertContains('preview_link', $channels);
+    $this->assertContains('Redirecting to preview link of test entity 2', $messages);
+
+    // The log sent to 'php' channel in ExceptionLoggingSubscriber::onError
+    // must not be triggered.
+    $this->assertNotContains('php', $channels);
   }
 
   /**
