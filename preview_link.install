@@ -176,3 +176,13 @@ function preview_link_update_8206(): TranslatableMarkup {
   $entityDefinitionUpdateManager->uninstallFieldStorageDefinition($entityTypeIdField);
   return \t("Removes the 'entity_id' and 'entity_type_id' fields from 'preview_link entity'.");
 }
+
+/**
+ * Opts sites into default message behavior.
+ */
+function preview_link_update_8207(): TranslatableMarkup {
+  $config = \Drupal::configFactory()->getEditable('preview_link.settings');
+  $config->set('display_message', 'subsequent');
+  $config->save(TRUE);
+  return \t('Updated Preview Link config.');
+}

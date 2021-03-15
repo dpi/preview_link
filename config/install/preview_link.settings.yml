@@ -1,2 +1,3 @@
 enabled_entity_types: {}
 multiple_entities: true
+display_message: 'subsequent'

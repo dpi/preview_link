@@ -40,7 +40,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     $timeMachine = \Drupal::service('datetime.time');
     assert($timeMachine instanceof TimeMachine);
@@ -192,7 +192,7 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
 
     // Make the unclaim message appear by visiting the canonical page.
     $this->drupalGet($entity->toUrl());
-    $this->assertSession()->pageTextContains('You are viewing this page because a preview link granted you access. Click here to remove token.');
+    $this->assertSession()->pageTextContains('You are viewing this page because a preview link granted you access. Click here to remove token and go back to the current version of this page.');
 
     // Link should have the canonical URL as the destination.
     $this->assertSession()->linkByHrefExists(Url::fromRoute('preview_link.session_tokens.remove', [], [
@@ -271,6 +271,104 @@ class PreviewLinkSessionTokenTest extends BrowserTestBase {
     $editUrl = $claimedEntity->toUrl('edit-form');
     $this->drupalGet($editUrl);
     $this->assertSession()->addressEquals($editUrl->toString());
+  }
+
+  /**
+   * Test messages are displayed depending on display message setting.
+   *
+   * @param string $displayMessageSetting
+   *   Display message setting value.
+   *
+   * @dataProvider providerMessage
+   */
+  public function testMessage(string $displayMessageSetting): void {
+    \Drupal::configFactory()->getEditable('preview_link.settings')
+      ->set('display_message', $displayMessageSetting)
+      ->save();
+
+    $entity1 = EntityTestRevPub::create();
+    $entity1->save();
+    $entity2 = EntityTestRevPub::create();
+    $entity2->save();
+
+    $previewLink = PreviewLink::create()
+      ->setEntities([$entity1, $entity2]);
+    $previewLink->save();
+
+    // Request to Preview Link URL shows message.
+    $previewLinkUrl = Url::fromRoute('entity.entity_test_revpub.preview_link', [
+      $entity1->getEntityTypeId() => $entity1->id(),
+      'preview_token' => $previewLink->getToken(),
+    ]);
+    $this->drupalGet($previewLinkUrl);
+    $this->assertSession()->statusCodeEquals(200);
+    if ($displayMessageSetting === 'always') {
+      // For 'always'.
+      $this->assertSession()->pageTextContains('You are viewing this page because a preview link granted you access. Click here to remove token.');
+    }
+    else {
+      // For 'subsequent' + 'never':
+      $this->assertSession()->pageTextNotContains('You are viewing this page because a preview link granted you access. Click here to remove token.');
+    }
+
+    // Subsequent requests to non preview link URL shows message.
+    $this->drupalGet($entity2->toUrl());
+    $this->assertSession()->statusCodeEquals(200);
+    if ($displayMessageSetting !== 'never') {
+      // For 'always' + 'subsequent'.
+      $this->assertSession()->pageTextContains('You are viewing this page because a preview link granted you access. Click here to remove token.');
+    }
+    else {
+      // For 'never':
+      $this->assertSession()->pageTextNotContains('You are viewing this page because a preview link granted you access. Click here to remove token.');
+    }
+  }
+
+  /**
+   * Test data for testMessage.
+   *
+   * @return array
+   *   Test data.
+   */
+  public function providerMessage(): array {
+    return [
+      ['always'],
+      ['subsequent'],
+      ['never'],
+    ];
+  }
+
+  /**
+   * Test messages when user has access to the non Preview Link route.
+   *
+   * When a user has access to the canonical route for a entity, they will see a
+   * message allowing them to go to the canonical URL after removing token.
+   */
+  public function testMessageCanonicalLink(): void {
+    user_role_change_permissions(RoleInterface::ANONYMOUS_ID, [
+      'view test entity' => TRUE,
+    ]);
+
+    \Drupal::configFactory()->getEditable('preview_link.settings')
+      ->set('display_message', 'always')
+      ->save();
+
+    $entity = EntityTestRevPub::create();
+    $entity->setPublished();
+    $entity->save();
+
+    $previewLink = PreviewLink::create()
+      ->setEntities([$entity]);
+    $previewLink->save();
+
+    // Request to Preview Link URL shows message.
+    $previewLinkUrl = Url::fromRoute('entity.entity_test_revpub.preview_link', [
+      $entity->getEntityTypeId() => $entity->id(),
+      'preview_token' => $previewLink->getToken(),
+    ]);
+    $this->drupalGet($previewLinkUrl);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->pageTextContains('You are viewing this page because a preview link granted you access. Click here to remove token and go back to the current version of this page.');
   }
 
 }

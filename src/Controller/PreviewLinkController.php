@@ -5,11 +5,15 @@ declare(strict_types = 1);
 namespace Drupal\preview_link\Controller;
 
 use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
+use Drupal\preview_link\PreviewLinkHookHelper;
+use Drupal\preview_link\PreviewLinkMessageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -25,16 +29,42 @@ class PreviewLinkController extends ControllerBase {
   protected $privateTempStoreFactory;
 
   /**
+   * Provides common messenger functionality.
+   *
+   * @var \Drupal\preview_link\PreviewLinkMessageInterface
+   */
+  protected $previewLinkMessages;
+
+  /**
+   * Provides service tasks for hooks.
+   *
+   * @var \Drupal\preview_link\PreviewLinkHookHelper
+   */
+  protected $hookHelper;
+
+  /**
    * PreviewLinkController constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity type manager.
    * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $privateTempStoreFactory
    *   The tempstore factory.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The config factory.
+   * @param \Drupal\preview_link\PreviewLinkMessageInterface $previewLinkMessages
+   *   Provides common messenger functionality.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
+   * @param \Drupal\preview_link\PreviewLinkHookHelper $hookHelper
+   *   Provides service tasks for hooks.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, PrivateTempStoreFactory $privateTempStoreFactory) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, PrivateTempStoreFactory $privateTempStoreFactory, ConfigFactoryInterface $configFactory, PreviewLinkMessageInterface $previewLinkMessages, MessengerInterface $messenger, PreviewLinkHookHelper $hookHelper) {
     $this->entityTypeManager = $entityTypeManager;
     $this->privateTempStoreFactory = $privateTempStoreFactory;
+    $this->previewLinkMessages = $previewLinkMessages;
+    $this->configFactory = $configFactory;
+    $this->messenger = $messenger;
+    $this->hookHelper = $hookHelper;
   }
 
   /**
@@ -44,6 +74,10 @@ class PreviewLinkController extends ControllerBase {
     return new static(
       $container->get('entity_type.manager'),
       $container->get('tempstore.private'),
+      $container->get('config.factory'),
+      $container->get('preview_link.message'),
+      $container->get('messenger'),
+      $container->get('preview_link.hook_helper')
     );
   }
 
@@ -61,7 +95,23 @@ class PreviewLinkController extends ControllerBase {
   public function preview(RouteMatchInterface $routeMatch, string $preview_token): array {
     // Accessing the controller will bind the Preview Link token to the session.
     $this->claimToken($preview_token);
+
     $entity = $this->resolveEntity($routeMatch);
+
+    $config = $this->configFactory->get('preview_link.settings');
+    if (in_array($config->get('display_message'), ['always'], TRUE)) {
+      // Reset static cache so our hook_entity_access is always re-evaluated.
+      $this->entityTypeManager->getAccessControlHandler($entity->getEntityTypeId())->resetCache();
+      // Temporarily disable so we can get whether the canonical route is really
+      // accessible.
+      $this->hookHelper->setPreviewLinkGrantingAccess(FALSE);
+
+      $this->messenger()->addMessage($this->previewLinkMessages->getGrantMessage($entity->toUrl()));
+
+      $this->entityTypeManager->getAccessControlHandler($entity->getEntityTypeId())->resetCache();
+      $this->hookHelper->setPreviewLinkGrantingAccess(TRUE);
+    }
+
     $view = $this->entityTypeManager->getViewBuilder($entity->getEntityTypeId())->view($entity);
     // Subsequent [cached] requests to the page need to be able to activate
     // links.
