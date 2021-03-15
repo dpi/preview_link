@@ -37,7 +37,7 @@ services:
     class: Drupal\preview_link\PreviewLinkHookHelper
   preview_link.preview_link_rerouter:
     class: Drupal\preview_link\EventSubscriber\PreviewLinkRouteEventSubscriber
-    arguments: ['@messenger', '@redirect.destination', '@config.factory', '@preview_link.message']
+    arguments: ['@messenger', '@redirect.destination', '@config.factory', '@preview_link.message', '@string_translation', '@current_user', '@logger.channel.preview_link']
     tags:
       - { name: event_subscriber }
   preview_link.route_subscriber:
@@ -45,3 +45,6 @@ services:
     arguments: ['@entity_type.manager']
     tags:
       - { name: event_subscriber }
+  logger.channel.preview_link:
+    parent: logger.channel_base
+    arguments: [ 'preview_link' ]

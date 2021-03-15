@@ -8,9 +8,12 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Routing\TrustedRedirectResponse;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Url;
 use Drupal\preview_link\Exception\PreviewLinkRerouteException;
 use Drupal\preview_link\PreviewLinkMessageInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -49,6 +52,13 @@ class PreviewLinkRouteEventSubscriber implements EventSubscriberInterface {
   protected $previewLinkMessages;
 
   /**
+   * A logger instance.
+   *
+   * @var \Psr\Log\LoggerInterface
+   */
+  protected $logger;
+
+  /**
    * PreviewLinkRouteEventSubscriber constructor.
    *
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
@@ -59,22 +69,35 @@ class PreviewLinkRouteEventSubscriber implements EventSubscriberInterface {
    *   The config factory.
    * @param \Drupal\preview_link\PreviewLinkMessageInterface $previewLinkMessages
    *   Provides common messenger functionality.
+   * @param \Drupal\Core\StringTranslation\TranslationInterface $stringTranslation
+   *   The string translation service.
+   * @param \Drupal\Core\Session\AccountInterface $currentUser
+   *   The current user.
+   * @param \Psr\Log\LoggerInterface $logger
+   *   The logger channel.
    */
-  public function __construct(MessengerInterface $messenger, RedirectDestinationInterface $redirectDestination, ConfigFactoryInterface $configFactory, PreviewLinkMessageInterface $previewLinkMessages) {
+  public function __construct(MessengerInterface $messenger, RedirectDestinationInterface $redirectDestination, ConfigFactoryInterface $configFactory, PreviewLinkMessageInterface $previewLinkMessages, TranslationInterface $stringTranslation, AccountInterface $currentUser, LoggerInterface $logger) {
     $this->messenger = $messenger;
     $this->redirectDestination = $redirectDestination;
     $this->configFactory = $configFactory;
     $this->previewLinkMessages = $previewLinkMessages;
+    $this->stringTranslation = $stringTranslation;
+    $this->currentUser = $currentUser;
+    $this->logger = $logger;
   }
 
   /**
    * Redirects from canonical routes to preview link route.
    *
+   * Need to use GetResponseForExceptionEvent and getException method instead of
+   * ExceptionEvent::getThrowable() since these are in Symfony 4.4, and
+   * Drupal 8.9 supports Symfony 3.4.
+   *
    * @param \Symfony\Component\HttpKernel\Event\ExceptionEvent $event
    *   The exception event.
    */
   public function onException(ExceptionEvent $event): void {
-    $exception = $event->getThrowable();
+    $exception = $event->getException();
     if ($exception instanceof PreviewLinkRerouteException) {
       $entity = $exception->getEntity();
 
@@ -95,6 +118,10 @@ class PreviewLinkRouteEventSubscriber implements EventSubscriberInterface {
         $this->messenger->addMessage($this->previewLinkMessages->getGrantMessage($entity->toUrl()));
       }
 
+      $this->logger->debug('Redirecting to preview link of @entity', [
+        '@entity' => $entity->label(),
+      ]);
+
       // 307: temporary.
       $response = (new TrustedRedirectResponse($previewLinkUrl->toString(), TrustedRedirectResponse::HTTP_TEMPORARY_REDIRECT))
         ->addCacheableDependency($exception);
@@ -107,7 +134,9 @@ class PreviewLinkRouteEventSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public static function getSubscribedEvents(): array {
-    $events[KernelEvents::EXCEPTION] = 'onException';
+    // Needs to be higher than ExceptionLoggingSubscriber::onError (priority 50)
+    // so exception is not logged. Larger numbers are earlier:
+    $events[KernelEvents::EXCEPTION][] = ['onException', 51];
     return $events;
   }
 
